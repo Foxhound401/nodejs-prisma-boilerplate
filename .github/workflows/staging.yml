@@ -1,0 +1,59 @@
+name: Staging Deployment CI/CD
+
+on:
+  push:
+    branches: [master]
+jobs:
+  build_push_deploy:
+    env:
+      SERVER_URL: ${{ secrets.SERVER_URL }}
+      TOKEN: ${{ secrets.TOKEN }}
+      DEPLOYMENT: "pytago-sso-service"
+      IMAGE_NAME: "eastplayers/pytago-sso-service:0.1.${{github.run_number}}"
+      CONTAINER_NAME: ${{ github.event.repository.name }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+
+      - name: Setup Docker Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@v1
+
+      - name: Build and Push Docker Image
+        id: docker_build
+        uses: docker/build-push-action@v2
+        with:
+          context: ./
+          file: ./deployment/Dockerfile
+          builder: ${{ steps.buildx.outputs.name }}
+          push: true
+          tags:  |
+            eastplayers/pytago-sso-service:latest
+            eastplayers/pytago-sso-service:0.1.${{github.run_number}}
+
+      - name: Image digest
+        run: echo ${{ steps.docker_build.outputs.digest }}
+
+      - name: Dump github context
+        run:   echo " $GITHUB_CONTEXT"
+        shell: bash
+        env:
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+
+      - name: Deploy to cluster
+        uses: Foxhound401/k8s-rollout-action@v0.1.8
+        with:
+          server-url: ${{ env.SERVER_URL }}
+          token: ${{ env.TOKEN }}
+          deployment: ${{ env.DEPLOYMENT }}
+          image-name: ${{ env.IMAGE_NAME }}
+          namespace: "staging"
+          container-name: ${{ env.DEPLOYMENT }}

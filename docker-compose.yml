@@ -1,0 +1,44 @@
+version: '3'
+
+services:
+  # api:
+  #   env_file:
+  #     - .env
+  #   build: 
+  #     context: .
+  #     dockerfile: deployment/Dockerfile
+  #   command: yarn start:dev
+  #   volumes:
+  #     - .:/app/
+  #   ports:
+  #     - "3000:3000"
+  #   depends_on:
+  #     - postgres
+  #   networks:
+  #     - overlay
+  postgres:
+    image: docker.io/bitnami/postgresql:latest
+    ports:
+      - '127.0.0.1:5432:5432'
+    networks:
+      - overlay
+    volumes:
+      - ./pgdata:/bitnami/postgresql
+    environment:
+      # - 'ALLOW_EMPTY_PASSWORD=yes'
+      - 'POSTGRESQL_DATABASE=postgres'
+      - 'POSTGRESQL_PASSWORD=12341234'
+  pgadmin:
+    image: thajeztah/pgadmin4
+    depends_on:
+      - postgres
+    networks:
+      - overlay
+    ports:
+      - "5050:5050"
+    volumes:
+      - '/home/brody/Tools/pgadmin/:/pgadmin'
+
+
+networks:
+  overlay:
