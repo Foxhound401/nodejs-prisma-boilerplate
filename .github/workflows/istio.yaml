@@ -2,15 +2,15 @@ name: Staging Deployment CI/CD
 
 on:
   push:
-    branches: [istio]
+    branches: [main]
 jobs:
   build_push_deploy:
     env:
       SERVER_URL: ${{ secrets.SERVER_URL }}
       TOKEN: ${{ secrets.TOKEN_SOVANHOA_DANANG }}
-      DEPLOYMENT: "sso-service-istio"
-      IMAGE_NAME: "eastplayers/sso-service-istio:0.1.${{github.run_number}}"
-      CONTAINER_NAME: "sso-service-istio"
+      DEPLOYMENT: "sso-service-danang"
+      IMAGE_NAME: "eastplayers/sso-service-danang:0.1.${{github.run_number}}"
+      CONTAINER_NAME: "sso-service-danang"
     runs-on: ubuntu-latest
 
     steps:
@@ -36,15 +36,21 @@ jobs:
           builder: ${{ steps.buildx.outputs.name }}
           push: true
           tags:  |
-            eastplayers/sso-service-istio:latest
-            eastplayers/sso-service-istio:0.1.${{github.run_number}}
+            eastplayers/sso-service-danang:latest
+            eastplayers/sso-service-danang:0.1.${{github.run_number}}
 
-      # - name: Deploy to cluster
-      #   uses: Foxhound401/k8s-rollout-action@v0.1.8
-      #   with:
-      #     server-url: ${{ env.SERVER_URL }}
-      #     token: ${{ env.TOKEN }}
-      #     deployment: ${{ env.DEPLOYMENT }}
-      #     image-name: ${{ env.IMAGE_NAME }}
-      #     namespace: "sovanhoa-istio"
-      #     container-name: ${{ env.DEPLOYMENT }}
+      - name: Deploy to cluster
+        uses: Foxhound401/k8s-rollout-action@v0.1.8
+        with:
+          server-url: ${{ env.SERVER_URL }}
+          token: ${{ env.TOKEN }}
+          deployment: ${{ env.DEPLOYMENT }}
+          image-name: ${{ env.IMAGE_NAME }}
+          namespace: "sovanhoa-danang"
+          container-name: ${{ env.DEPLOYMENT }}
+
+      - name: Actions Status Discord
+        if: always()
+        uses: sarisia/actions-status-discord@v1.8.6
+        with:
+          webhook: ${{ secrets.DISCORD_WEBHOOK }}
