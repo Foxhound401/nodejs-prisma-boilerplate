@@ -2,12 +2,12 @@ name: Staging Deployment CI/CD
 
 on:
   push:
-    branches: [danang-app]
+    branches: [main]
 jobs:
   build_push_deploy:
     env:
       SERVER_URL: ${{ secrets.SERVER_URL }}
-      TOKEN: ${{ secrets.TOKEN_SOVANHOA_DANANG }}
+      TOKEN: ${{ secrets.TOKEN }}
       DEPLOYMENT: "sso-service-danang"
       IMAGE_NAME: "eastplayers/sso-service-danang:0.1.${{github.run_number}}"
       CONTAINER_NAME: "sso-service-danang"
@@ -48,3 +48,9 @@ jobs:
           image-name: ${{ env.IMAGE_NAME }}
           namespace: "sovanhoa-danang"
           container-name: ${{ env.DEPLOYMENT }}
+
+      - name: Actions Status Discord
+        if: always()
+        uses: sarisia/actions-status-discord@v1.8.6
+        with:
+          webhook: ${{ secrets.DISCORD_WEBHOOK }}
