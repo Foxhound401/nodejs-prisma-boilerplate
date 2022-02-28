@@ -247,16 +247,14 @@ class UserService extends CRUDService {
         }
     }
 
-    getUsersByFilters = async (filters) => {
+    getUsersByFilters = async (email) => {
         // TODO: select user base on name, select users base on name and email
         // const users = await this.list({ name: filters.name, email: filters.email, phone_number: filters.phoneNumber })
         const users = await models.User.findAll({
             where: {
-                email: filters.email,
+                email: email,
             },
-            include: { model: models.UsersAccount, as: "usersAccounts" }
         })
-
 
         return users
     }

@@ -379,6 +379,7 @@ class UserController {
             const validPassword = await this.utilsService.comparePassword(password, user.password)
             if (!validPassword) return res.status(400).json({ error: "Wrong username or password" })
 
+            user.token = ""
             const newToken = jwt.sign({ user: user }, process.env.JWT_SECRET_KEY, {
                 expiresIn: "7d"
             });
@@ -391,19 +392,25 @@ class UserController {
         }
     }
 
+    getUserInfo = async (req, res) => {
+        try {
+            const email = req.user?.email
+            return res.status(200).json({ data: email })
+        } catch (error) {
+            return res.status(500).json({ error: error.message })
+        }
+    }
+
     filterUser = async (req, res) => {
         try {
-            const { filters } = req.body;
+            const { email } = req.query;
 
-            const users = this.userService.getUsersByFilters(filters);
-            // const userPayload = {
-            //     email,
-            //     otp,
-            // }
-            // const userSignIn = await this.userService.signIn(userPayload);
+            console.log(email)
+            const users = await this.userService.getUsersByFilters(email);
+            console.log(users)
 
             return res.status(200).json({
-                data: users
+                users
             });
         } catch (error) {
             return res.status(400).json({ error: error.message });

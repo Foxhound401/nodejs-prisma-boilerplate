@@ -1,5 +1,6 @@
 const bcrypt = require('bcrypt');
 const Pusher = require('pusher');
+const { jwt } = require('twilio');
 const pusher = new Pusher({
     appId: process.env.PUSHER_APP_ID,
     key: process.env.PUSHER_APP_KEY,

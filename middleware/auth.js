@@ -5,7 +5,7 @@ const useragent = require('express-useragent');
 const authenticateJWT = (req, res, next) => {
     const authHeader = req.headers.authorization;
     let source = req.headers['user-agent'],
-    ua = useragent.parse(source);
+        ua = useragent.parse(source);
     if (authHeader) {
         const token = authHeader.split(' ')[1];
         jwt.verify(token, process.env.JWT_SECRET_KEY, async (err, payload) => {
@@ -13,13 +13,15 @@ const authenticateJWT = (req, res, next) => {
                 return res.sendStatus(403);
             }
             // check if token is valid
-            const existedUser = await models.User.findOne({ where: {
-                email: payload.user.email,
-                token: token
-            }});
+            const existedUser = await models.User.findOne({
+                where: {
+                    email: payload.user.email,
+                    token: token
+                }
+            });
 
             // token is invalid
-            if(!existedUser){
+            if (!existedUser) {
                 return res.sendStatus(401);
             }
 

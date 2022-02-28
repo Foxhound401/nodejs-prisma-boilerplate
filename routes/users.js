@@ -1,9 +1,7 @@
-const {
-    Router
-} = require('express');
+const { Router } = require('express');
 const UserController = require('../controllers/users');
 
-const authMiddleware = require('../middleware/auth');
+const { authenticateJWT } = require('../middleware/auth');
 const router = Router();
 
 const userController = new UserController;
@@ -25,10 +23,11 @@ router.post('/reset-password-email', userController.resetPasswordEmail);
 router.get('/sign-up-google', userController.signUpWithGoogle);
 router.get('/sign-up-facebook', userController.signUpWithFacebook);
 router.get('/sign-up-github', userController.signUpWithGithub);
+router.get('/get-user-info', authenticateJWT, userController.getUserInfo);
 
 router.get('/sign-up-sms', userController.signUpWithSMS);
 
-router.get('/filter-user', userController.filterUser);
+router.get('/filter-user', authenticateJWT, userController.filterUser);
 
 
 // signup with phone number
