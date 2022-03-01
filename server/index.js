@@ -9,6 +9,6 @@ server.use(cors());
 server.use(express.json());
 server.use(morgan());
 
-server.use("/sso", routes);
+server.use("/", routes);
 
 module.exports = server;
