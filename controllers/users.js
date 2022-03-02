@@ -8,6 +8,7 @@ const models = require("../database/models");
 const { Op } = require("sequelize");
 const mailService = require("../services/mails");
 const jwt = require("jsonwebtoken");
+const { sendOtp } = require("../services/twilio-service");
 
 class UserController {
   constructor() {
@@ -505,6 +506,9 @@ class UserController {
           createUser.token = newToken;
           createUser.save();
 
+          // SEND OTP VIA TWILIO
+          sendOtp(phone_number);
+
           return res.status(201).json({
             data: createUser,
           });
@@ -532,6 +536,9 @@ class UserController {
 
         createUser.token = newToken;
         createUser.save();
+
+        // SEND OTP VIA EMAIL
+        await this.userService.sendOTPEmail(email);
 
         return res.status(201).json({
           data: createUser,
