@@ -406,10 +406,10 @@ class UserController {
       const mailRegex = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
 
       if (!mailRegex.test(email_phone)) {
-        const phoneNumber = email_phone;
+        const phone_number = email_phone;
         // check for phone
         const user = await this.userService.firstRow({
-          phoneNumber,
+          phone_number,
         });
 
         // if phone do
@@ -481,18 +481,20 @@ class UserController {
 
       const mailRegex = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
 
+      // Create user with phone_number
       if (!mailRegex.test(email_phone)) {
-        const phoneNumber = email_phone;
+        const phone_number = email_phone;
         // check for phone
         const user = await this.userService.firstRow({
-          phoneNumber,
+          phone_number,
         });
 
         // if phone do
 
         if (!user) {
           const createUser = await this.userService.create({
-            phoneNumber,
+            phone_number,
+            username,
             password: await this.utilsService.hashingPassword(password),
           });
 
@@ -513,14 +515,14 @@ class UserController {
         return res.status(409).json({ error: "Phone number already existed!" });
       }
 
+      // Create user with email
       const email = email_phone;
       const user = await this.userService.firstRow({ email });
 
-      // if phone do
-
       if (!user) {
         const createUser = await this.userService.create({
-          email: email_phone,
+          email,
+          username,
           password: await this.utilsService.hashingPassword(password),
         });
 
