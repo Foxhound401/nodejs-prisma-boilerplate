@@ -489,7 +489,6 @@ class UserController {
           phone_number,
         });
 
-        console.log(email_phone);
         if (!user) {
           const createUser = await this.userService.create({
             phone_number: phone_number,
@@ -548,7 +547,37 @@ class UserController {
   getUserInfo = async (req, res) => {
     try {
       const email = req.user?.email;
-      return res.status(200).json({ data: email });
+      const phone_number = req.user?.phone_number;
+
+      if (!email && !phone_number)
+        return res
+          .status(422)
+          .json({ error: "Wrong format or empty email/phone_number" });
+
+      // Create user with phone_number
+      if (phone_number) {
+        const user = await this.userService.firstRow({
+          phone_number,
+        });
+
+        if (!user)
+          return res
+            .status(404)
+            .json({ message: "User not found!", error: "Not Found" });
+
+        return res.status(201).json({ data: user });
+      }
+
+      // Create user with email
+      const user = await this.userService.firstRow({ email });
+
+      if (!user) {
+        return res
+          .status(404)
+          .json({ message: "User not found!", error: "Not Found" });
+      }
+
+      return res.status(200).json({ data: user });
     } catch (error) {
       return res.status(500).json({ error: error.message });
     }
