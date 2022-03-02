@@ -484,17 +484,16 @@ class UserController {
       // Create user with phone_number
       if (!mailRegex.test(email_phone)) {
         const phone_number = email_phone;
-        // check for phone
+
         const user = await this.userService.firstRow({
           phone_number,
         });
 
-        // if phone do
-
+        console.log(email_phone);
         if (!user) {
           const createUser = await this.userService.create({
-            phone_number,
-            username,
+            phone_number: phone_number,
+            username: username,
             password: await this.utilsService.hashingPassword(password),
           });
 
