@@ -8,7 +8,7 @@ const models = require("../database/models");
 const { Op } = require("sequelize");
 const mailService = require("../services/mails");
 const jwt = require("jsonwebtoken");
-const { sendOtp } = require("../services/twilio-service");
+const { sendOtp, verifyOtp } = require("../services/twilio-service");
 
 class UserController {
   constructor() {
@@ -507,7 +507,7 @@ class UserController {
           createUser.save();
 
           // SEND OTP VIA TWILIO
-          sendOtp(phone_number);
+          await sendOtp(phone_number);
 
           return res.status(201).json({
             data: createUser,
@@ -587,6 +587,73 @@ class UserController {
       return res.status(200).json({ data: user });
     } catch (error) {
       return res.status(500).json({ error: error.message });
+    }
+  };
+
+  verifyOTP = async (req, res) => {
+    try {
+      const email = req.user?.email;
+      const phone_number = req.user?.phone_number;
+      const otp = req.body.otp;
+
+      if (!email && !phone_number)
+        return res
+          .status(422)
+          .json({ error: "Wrong format or empty email/phone" });
+
+      if (phone_number) {
+        const user = await this.userService.firstRow({ phone_number });
+        if (!user) return res.status(404).json({ error: "User Not Found!" });
+        const verifiedOTP = await verifyOtp(phone_number, otp);
+        if (verifiedOTP !== "approved" && verifiedOTP.valid) {
+          user.otp_code = otp;
+          user.is_verify = true;
+          user.save();
+        }
+        return res.status(201).json({ data: { is_verify: user.is_verify } });
+      }
+
+      const verifiedOTP = await this.userService.verifyOTPEmail(email, otp);
+      if (!verifiedOTP)
+        return res
+          .status(400)
+          .json({ error: "Failed to verify OTP via Email" });
+      return res
+        .status(201)
+        .json({ data: { is_verify: verifiedOTP.is_verify } });
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  resendOTP = async (req, res) => {
+    try {
+      const email = req.user?.email;
+      const phone_number = req.user?.phone_number;
+      if (!email && !phone_number)
+        return res
+          .status(422)
+          .json({ error: "Wrong format or empty email/phone" });
+
+      if (phone_number) {
+        const user = await this.userService.firstRow({ phone_number });
+        if (!user) return res.status(404).json({ error: "User Not Found!" });
+        await sendOtp(phone_number);
+        user.is_verify = false;
+        user.otp_code = "";
+        user.save();
+
+        return res
+          .status(201)
+          .json({ data: { message: "Successfully resend OTP!" } });
+      }
+
+      await this.userService.sendOTPEmail(email);
+      return res
+        .status(201)
+        .json({ data: { message: "Successfully resend OTP!" } });
+    } catch (error) {
+      throw error;
     }
   };
 

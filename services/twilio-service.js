@@ -32,18 +32,21 @@ const sendOtp = async (phoneNumber) => {
 };
 
 const verifyOtp = async (phoneNumber, otp) => {
+  let processed_phone_number = phoneNumber;
+  if (processed_phone_number.charAt(0) === "0") {
+    processed_phone_number = processed_phone_number.slice(1);
+  }
   const verificationCheck = await client.verify
     .services(twilioConfig.serviceSid)
-    .verificationChecks.create({ to: phoneNumber, code: otp });
+    .verificationChecks.create({
+      to: `+84${processed_phone_number}`,
+      code: otp,
+    });
 
-  if (verificationCheck) {
-    return verificationCheck;
-  } else {
-    return {
-      message: "faield to check otp",
-      error: verificationCheck,
-    };
-  }
+  if (!verificationCheck)
+    return { message: "failed to check otp", error: verificationCheck };
+
+  return verificationCheck;
 };
 
 module.exports = {
