@@ -10,43 +10,51 @@ const twilioConfig = {
 const client = new twilio(twilioConfig.accountSid, twilioConfig.authToken);
 
 const sendOtp = async (phoneNumber) => {
-  let processed_phone_number = phoneNumber;
-  if (processed_phone_number.charAt(0) === "0") {
-    processed_phone_number = processed_phone_number.slice(1);
-  }
-  const verification = await client.verify
-    .services(twilioConfig.serviceSid)
-    .verifications.create({
-      to: `+84${processed_phone_number}`,
-      channel: "sms",
-    });
+  try {
+    let processed_phone_number = phoneNumber;
+    if (processed_phone_number.charAt(0) === "0") {
+      processed_phone_number = processed_phone_number.slice(1);
+    }
+    const verification = await client.verify
+      .services(twilioConfig.serviceSid)
+      .verifications.create({
+        to: `+84${processed_phone_number}`,
+        channel: "sms",
+      });
 
-  if (verification) {
-    return verification;
-  } else {
-    return {
-      message: "failed to send otp",
-      error: verification,
-    };
+    if (verification) {
+      return verification;
+    } else {
+      return {
+        message: "failed to send otp",
+        error: verification,
+      };
+    }
+  } catch (error) {
+    throw error;
   }
 };
 
 const verifyOtp = async (phoneNumber, otp) => {
-  let processed_phone_number = phoneNumber;
-  if (processed_phone_number.charAt(0) === "0") {
-    processed_phone_number = processed_phone_number.slice(1);
+  try {
+    let processed_phone_number = phoneNumber;
+    if (processed_phone_number.charAt(0) === "0") {
+      processed_phone_number = processed_phone_number.slice(1);
+    }
+    const verificationCheck = await client.verify
+      .services(twilioConfig.serviceSid)
+      .verificationChecks.create({
+        to: `+84${processed_phone_number}`,
+        code: otp,
+      });
+
+    if (!verificationCheck)
+      return { message: "failed to check otp", error: verificationCheck };
+
+    return verificationCheck;
+  } catch (error) {
+    throw error;
   }
-  const verificationCheck = await client.verify
-    .services(twilioConfig.serviceSid)
-    .verificationChecks.create({
-      to: `+84${processed_phone_number}`,
-      code: otp,
-    });
-
-  if (!verificationCheck)
-    return { message: "failed to check otp", error: verificationCheck };
-
-  return verificationCheck;
 };
 
 module.exports = {
