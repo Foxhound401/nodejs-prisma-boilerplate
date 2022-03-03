@@ -19,9 +19,9 @@ router.post("/sign-up", userController.signUp);
 router.post("/verify-otp", authenticateJWT, userController.verifyOTP);
 router.get("/resend-otp", authenticateJWT, userController.resendOTP);
 
-router.get("/reset-resend-otp", userController.resetSendOTP);
-
 router.post("/send-reset-password-otp", userController.sendResetPasswordOTP);
+router.get("/resend-reset-password-otp", userController.resendResetPasswordOTP);
+router.get("/verify-reset-password-otp", userController.verifyResetPasswordOTP);
 
 router.post("/reset-password", userController.resetPassword);
 

@@ -627,7 +627,7 @@ class UserController {
     }
   };
 
-  resetSendOTP = async (req, res) => {
+  resendResetPasswordOTP = async (req, res) => {
     try {
       const email_phone = req.query.email_phone;
 
