@@ -801,6 +801,7 @@ class UserController {
   sendResetPasswordOTP = async (req, res) => {
     try {
       const { email_phone } = req.body;
+      console.log(email_phone);
 
       if (!email_phone)
         return res
@@ -825,13 +826,14 @@ class UserController {
         // SEND OTP VIA TWILIO
         await sendOtp(phone_number);
 
-        return res
-          .status(201)
-          .json({ data: { message: "OTP send successfully!!" } });
+        return res.status(201).json({
+          data: { message: "OTP send successfully!!", otpSent: true },
+        });
       }
 
       // Create user with email
       const email = email_phone;
+      console.log(email);
       const user = await this.userService.firstRow({ email });
 
       if (!user)
@@ -844,7 +846,7 @@ class UserController {
 
       return res
         .status(201)
-        .json({ data: { message: "Email already existed!", otpSent: true } });
+        .json({ data: { message: "OTP send successfully", otpSent: true } });
     } catch (error) {
       return res.status(500).json({ error: error.message });
     }
