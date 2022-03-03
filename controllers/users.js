@@ -705,7 +705,6 @@ class UserController {
     try {
       const email = req.user?.email;
       const phone_number = req.user?.phone_number;
-      const email_phone = req.query.email_phone;
 
       if (!email && !phone_number)
         return res
@@ -807,14 +806,6 @@ class UserController {
         return res
           .status(422)
           .json({ error: "Wrong format or empty for email" });
-      if (!password)
-        return res
-          .status(422)
-          .json({ error: "Wrong format or empty for password" });
-      if (!username)
-        return res
-          .status(422)
-          .json({ error: "Wrong format or empty for username" });
 
       const mailRegex = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
 
