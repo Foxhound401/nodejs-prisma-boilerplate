@@ -641,6 +641,7 @@ class UserController {
       const mailRegex = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
 
       if (!mailRegex.test(email_phone)) {
+        const phone_number = email_phone;
         const user = await this.userService.firstRow({ phone_number });
         if (!user) return res.status(404).json({ error: "User Not Found!" });
         const verifiedOTP = await verifyOtp(phone_number, otp);
