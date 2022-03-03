@@ -6,27 +6,33 @@ const router = Router();
 
 const userController = new UserController();
 
-router.post("/send-otp", userController.sendOTP);
+// router.post("/send-otp", userController.sendOTP);
 
 // deprecated, should only be use for compatibility with older version
 // use the new route `sign-in-with-otp`
-router.post("/sign-in", userController.signInWithOTP);
-router.post("/sign-in-otp", userController.signInWithOTP);
+// router.post("/sign-in", userController.signInWithOTP);
+// router.post("/sign-in-otp", userController.signInWithOTP);
 
-router.post("/sign-in-email-password", userController.signInWithEmailPassword);
-router.post("/sign-up-email-password", userController.signUpWithEmailPassword);
+router.post("/sign-in", userController.signIn);
+router.post("/sign-up", userController.signUp);
+
 router.post("/verify-otp", authenticateJWT, userController.verifyOTP);
 router.get("/resend-otp", authenticateJWT, userController.resendOTP);
 
-router.post(
-  "/send-forget-password-link",
-  userController.sendForgetPasswordLinkToEmail
-);
-router.post(
-  "/send-forget-password-reset-code",
-  userController.sendForgetPasswordResetCode
-);
-router.post("/reset-password-email", userController.resetPasswordEmail);
+router.get("/reset-resend-otp", userController.resetSendOTP);
+
+router.post("/send-reset-password-otp", userController.sendResetPasswordOTP);
+
+router.post("/reset-password", userController.resetPassword);
+
+// router.post(
+//   "/send-forget-password-link",
+//   userController.sendForgetPasswordLinkToEmail
+// );
+// router.post(
+//   "/send-forget-password-reset-code",
+//   userController.sendForgetPasswordResetCode
+// );
 
 router.get("/sign-up-google", userController.signUpWithGoogle);
 router.get("/sign-up-facebook", userController.signUpWithFacebook);
