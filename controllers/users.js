@@ -627,6 +627,44 @@ class UserController {
     }
   };
 
+  verifyResetPasswordOTP = async (req, res) => {
+    try {
+      const email_phone = req.body.email_phone;
+      const otp = req.body.otp;
+
+      if (!email_phone || !otp)
+        return res
+          .status(422)
+          .json({ error: "Wrong format or empty email/phone" });
+
+      const mailRegex = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+
+      if (!mailRegex.test(email_phone)) {
+        const user = await this.userService.firstRow({ phone_number });
+        if (!user) return res.status(404).json({ error: "User Not Found!" });
+        const verifiedOTP = await verifyOtp(phone_number, otp);
+        if (verifiedOTP !== "approved" && verifiedOTP.valid) {
+          user.otp_code = otp;
+          user.is_verify = true;
+          user.save();
+        }
+        return res.status(201).json({ data: { is_verify: user.is_verify } });
+      }
+
+      const email = email_phone;
+      const verifiedOTP = await this.userService.verifyOTPEmail(email, otp);
+      if (!verifiedOTP)
+        return res
+          .status(400)
+          .json({ error: "Failed to verify OTP via Email" });
+      return res
+        .status(201)
+        .json({ data: { is_verify: verifiedOTP.is_verify } });
+    } catch (error) {
+      throw error;
+    }
+  };
+
   resendResetPasswordOTP = async (req, res) => {
     try {
       const email_phone = req.query.email_phone;
