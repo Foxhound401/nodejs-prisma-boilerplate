@@ -665,6 +665,53 @@ class UserController {
     }
   };
 
+  resetPasswordOTP = async (req, res) => {
+    try {
+      const { email_phone, new_password } = req.body;
+
+      if (!email_phone)
+        return res
+          .status(422)
+          .json({ error: "Wrong format or empty email/phone" });
+      if (!new_password)
+        return res
+          .status(422)
+          .json({ error: "Wrong format or empty password" });
+
+      const mailRegex = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+      const hashedPassword = await this.utilsService.hashingPassword(
+        new_password
+      );
+      console.log(hashedPassword);
+
+      if (!mailRegex.test(email_phone)) {
+        const phone_number = email_phone;
+        const user = await this.userService.firstRow({ phone_number });
+        if (!user) return res.status(404).json({ error: "User Not Found!" });
+
+        user.password = hashedPassword;
+        await user.save();
+
+        return res
+          .status(201)
+          .json({ data: { message: "Successfully reset password!!", user } });
+      }
+
+      const email = email_phone;
+      const user = await this.userService.firstRow({ email });
+      if (!user) return res.status(404).json({ error: "User Not Found!" });
+
+      user.password = hashedPassword;
+      await user.save();
+
+      return res
+        .status(201)
+        .json({ data: { message: "Successfully reset password!!", user } });
+    } catch (error) {
+      throw error;
+    }
+  };
+
   resendResetPasswordOTP = async (req, res) => {
     try {
       const email_phone = req.query.email_phone;

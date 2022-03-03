@@ -22,6 +22,7 @@ router.get("/resend-otp", authenticateJWT, userController.resendOTP);
 router.post("/send-reset-password-otp", userController.sendResetPasswordOTP);
 router.get("/resend-reset-password-otp", userController.resendResetPasswordOTP);
 router.get("/verify-reset-password-otp", userController.verifyResetPasswordOTP);
+router.post("/reset-password-otp", userController.resetPasswordOTP);
 
 router.post("/reset-password", userController.resetPassword);
 
