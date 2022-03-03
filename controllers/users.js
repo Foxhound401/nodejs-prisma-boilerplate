@@ -629,9 +629,10 @@ class UserController {
 
   verifyResetPasswordOTP = async (req, res) => {
     try {
-      const email_phone = req.body.email_phone;
-      const otp = req.body.otp;
+      const { otp, email_phone } = req.body;
 
+      console.log(otp);
+      console.log(email_phone);
       if (!email_phone || !otp)
         return res
           .status(422)
