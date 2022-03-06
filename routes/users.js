@@ -42,6 +42,7 @@ router.get("/sign-up-google", userController.signUpWithGoogle);
 router.get("/sign-up-facebook", userController.signUpWithFacebook);
 router.get("/sign-up-github", userController.signUpWithGithub);
 router.get("/get-user-info", authenticateJWT, userController.getUserInfo);
+// router.get("/get-user-info", userController.getUserInfo);
 
 router.get("/sign-up-sms", userController.signUpWithSMS);
 

@@ -557,6 +557,9 @@ class UserController {
       const email = req.user?.email;
       const phone_number = req.user?.phone_number;
 
+      console.log(email);
+      console.log(phone_number);
+
       if (!email && !phone_number)
         return res
           .status(422)
@@ -573,7 +576,13 @@ class UserController {
             .status(404)
             .json({ message: "User not found!", error: "Not Found" });
 
-        return res.status(201).json({ data: user });
+        return res.status(201).json({
+          data: {
+            ...user,
+            created_at: user.createdAt,
+            updated_at: user.updatedAt,
+          },
+        });
       }
 
       // Create user with email
@@ -585,7 +594,13 @@ class UserController {
           .json({ message: "User not found!", error: "Not Found" });
       }
 
-      return res.status(200).json({ data: user });
+      return res.status(200).json({
+        data: {
+          ...user,
+          created_at: user.createdAt,
+          updated_at: user.updatedAt,
+        },
+      });
     } catch (error) {
       return res.status(500).json({ error: error.message });
     }
