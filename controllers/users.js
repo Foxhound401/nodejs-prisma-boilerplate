@@ -587,6 +587,7 @@ class UserController {
 
       // Create user with email
       const user = await this.userService.firstRow({ email });
+      console.log("USER_CONTROLLER: ", user);
 
       if (!user) {
         return res
