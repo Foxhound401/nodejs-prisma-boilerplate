@@ -10,12 +10,7 @@ module.exports = {
     native: false,
     dialectOptions: {
       requestTimeout: 3000,
-    },
-    dialectOptions: {
-      ssl: {
-        require: false,
-        rejectUnauthorized: false, // <<<<<<< YOU NEED THIS
-      },
+      ssl: false,
     },
   },
   test: {
