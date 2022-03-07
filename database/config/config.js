@@ -11,6 +11,12 @@ module.exports = {
     dialectOptions: {
       requestTimeout: 3000,
     },
+    dialectOptions: {
+      ssl: {
+        require: false,
+        rejectUnauthorized: false, // <<<<<<< YOU NEED THIS
+      },
+    },
   },
   test: {
     url: process.env.TEST_DATABASE_URL,

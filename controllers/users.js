@@ -578,7 +578,7 @@ class UserController {
 
         return res.status(201).json({
           data: {
-            ...user,
+            user: user,
             created_at: user.createdAt,
             updated_at: user.updatedAt,
           },
@@ -597,7 +597,7 @@ class UserController {
 
       return res.status(200).json({
         data: {
-          ...user,
+          user: user,
           created_at: user.createdAt,
           updated_at: user.updatedAt,
         },
