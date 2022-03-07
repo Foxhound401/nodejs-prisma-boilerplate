@@ -8,10 +8,8 @@ const authenticateJWT = (req, res, next) => {
     ua = useragent.parse(source);
   if (authHeader) {
     const token = authHeader.split(" ")[1];
-    console.log(token);
     jwt.verify(token, process.env.JWT_SECRET_KEY, async (err, payload) => {
       if (err) {
-        console.log(err);
         return res.sendStatus(403);
       }
       // check if token is valid
@@ -21,7 +19,6 @@ const authenticateJWT = (req, res, next) => {
           token: token,
         },
       });
-      console.log(existedUser);
 
       // token is invalid
       if (!existedUser) {
