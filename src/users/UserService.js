@@ -3,6 +3,7 @@ const UtilsService = require('../utils/UtilsService');
 const jwt = require('jsonwebtoken');
 const twilioService = require('../otp/OTPService');
 const mailService = require('../email/EmailService');
+const socialService = require('../social/SocialService');
 
 const MAX_OTP_CHARACTERS = 4;
 
@@ -392,6 +393,21 @@ class UserService {
       },
     });
     if (!createdUser) throw new Error('Failed to create user!');
+
+    // TODO: implement Observer to relay user
+    // This should have observer pattern so that multiple services can
+    // subscribe to it and sync the user
+    const userSocial = await socialService.createUser(createdUser);
+
+    if (!userSocial) {
+      await prisma.users.delete({
+        where: { id: createdUser.id },
+      });
+
+      await socialService.deleteUser(createdUser.id);
+
+      throw new Error('Failed to create user!');
+    }
 
     const token = jwt.sign({ data: createdUser }, process.env.JWT_SECRET_KEY, {
       expiresIn: '7d',
