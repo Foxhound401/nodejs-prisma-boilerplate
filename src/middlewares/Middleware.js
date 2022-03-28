@@ -15,9 +15,16 @@ const validateJWT = (req, res, next) => {
   jwt.verify(token, process.env.JWT_SECRET_KEY, async (err, payload) => {
     if (err) return res.sendStatus(403);
 
+    if (!payload)
+      return res
+        .status(401)
+        .send({ message: 'Session Expired, Please login again' });
+
+    console.log('PAYLOAD: ', payload);
+
     const existedUser = await prisma.users.findFirst({
       where: {
-        email: payload.user.email,
+        email: payload.data.email,
         token: token,
       },
     });
@@ -38,7 +45,7 @@ const validateJWT = (req, res, next) => {
       return res.sendStatus(401);
     }
 
-    req.user = payload.user;
+    req.jwt_middleware = payload.data;
     next();
   });
 };

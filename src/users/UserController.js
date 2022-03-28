@@ -98,8 +98,8 @@ class UserController {
 
   getUserInfo = async (req, res) => {
     try {
-      const email = req.user?.email;
-      const phone_number = req.user?.phone_number;
+      const email = req.jwt_middleware?.email;
+      const phone_number = req.jwt_middlware?.phone_number;
 
       console.log(email);
       console.log(phone_number);
@@ -111,7 +111,7 @@ class UserController {
 
       // Create user with phone_number
       if (phone_number) {
-        const user = await this.userService.firstRow({
+        const user = await this.userService.findFirst({
           phone_number,
         });
 
@@ -123,15 +123,14 @@ class UserController {
         return res.status(201).json({
           data: {
             user: user,
-            created_at: user.createdAt,
-            updated_at: user.updatedAt,
           },
         });
       }
 
       // Create user with email
-      const user = await this.userService.firstRow({ email });
-      console.log('USER_CONTROLLER: ', user);
+      const user = await this.userService.findFirst({
+        email,
+      });
 
       if (!user) {
         return res
@@ -142,13 +141,13 @@ class UserController {
       return res.status(200).json({
         data: {
           user: user,
-          created_at: user.createdAt,
-          updated_at: user.updatedAt,
         },
       });
     } catch (error) {
       console.error(error);
-      return res.status(500).json({ error: error.message });
+      return res
+        .status(500)
+        .json({ error: 'Unavailable Please Try Again Later' });
     }
   };
 

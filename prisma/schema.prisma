@@ -15,6 +15,7 @@ model Users {
   password       String?         @db.VarChar(255)
   profile_src    String?         @db.VarChar(255)
   avatar         String?
+  cover          String?
   otp_code       String?         @db.VarChar(255)
   account_type   enum_user_type
 

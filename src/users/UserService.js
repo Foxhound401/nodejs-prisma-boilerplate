@@ -11,6 +11,26 @@ class UserService {
     this.utilsService = new UtilsService();
   }
 
+  findFirst = async (query) => {
+    return prisma.users.findFirst({
+      where: {
+        ...query,
+      },
+      select: {
+        id: true,
+        username: true,
+        email: true,
+        phone_number: true,
+        avatar: true,
+        account_type: true,
+        first_name: true,
+        last_name: true,
+        created_at: true,
+        updated_at: true,
+      },
+    });
+  };
+
   generateOTP = (max = MAX_OTP_CHARACTERS) => {
     return this.utilsService.getRandomString(max);
   };
@@ -46,10 +66,12 @@ class UserService {
     const token = jwt.sign({ data: user }, process.env.JWT_SECRET_KEY, {
       expiresIn: '7d',
     });
-    user.token = token;
+
     return prisma.users.update({
       where: { id: user.id },
-      data: user,
+      data: {
+        token: token,
+      },
       select: {
         id: true,
         email: true,
@@ -78,9 +100,13 @@ class UserService {
     const token = jwt.sign({ data: user }, process.env.JWT_SECRET_KEY, {
       expiresIn: '7d',
     });
-    user.token = token;
 
-    return prisma.users.update(user);
+    return prisma.users.update({
+      where: { id: user.id },
+      data: {
+        token: token,
+      },
+    });
   };
 
   getAllUsers = async (req, res) => {
