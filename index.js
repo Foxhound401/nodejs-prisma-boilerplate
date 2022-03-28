@@ -1,7 +1,8 @@
-require("dotenv").config();
+const app = require('./src/app.js');
+const chalk = require('chalk');
 
-const server = require("./server");
+const port = process.env.PORT || 3000;
 
-const PORT = process.env.PORT || 3300;
-
-server.listen(PORT, () => console.log(`Server is live at localhost:${PORT}`));
+app.listen(port, () =>
+  console.log(`\n⛅  App is running on: http://localhost:${chalk.yellow(port)}`)
+);

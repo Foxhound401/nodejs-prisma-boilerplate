@@ -1,7 +1,7 @@
-const { Router } = require("express");
-const UserController = require("../controllers/users");
+const { Router } = require('express');
+const UserController = require('../controllers/users');
 
-const { authenticateJWT } = require("../middleware/auth");
+const { authenticateJWT } = require('../middleware/auth');
 const router = Router();
 
 const userController = new UserController();
@@ -13,21 +13,21 @@ const userController = new UserController();
 // router.post("/sign-in", userController.signInWithOTP);
 // router.post("/sign-in-otp", userController.signInWithOTP);
 
-router.post("/sign-in", userController.signIn);
-router.post("/sign-up", userController.signUp);
+router.post('/sign-in', userController.signIn);
+router.post('/sign-up', userController.signUp);
 
-router.post("/verify-otp", authenticateJWT, userController.verifyOTP);
-router.get("/resend-otp", authenticateJWT, userController.resendOTP);
+router.post('/verify-otp', authenticateJWT, userController.verifyOTP);
+router.get('/resend-otp', authenticateJWT, userController.resendOTP);
 
-router.post("/send-reset-password-otp", userController.sendResetPasswordOTP);
-router.get("/resend-reset-password-otp", userController.resendResetPasswordOTP);
+router.post('/send-reset-password-otp', userController.sendResetPasswordOTP);
+router.get('/resend-reset-password-otp', userController.resendResetPasswordOTP);
 router.post(
-  "/verify-reset-password-otp",
+  '/verify-reset-password-otp',
   userController.verifyResetPasswordOTP
 );
-router.post("/reset-password-otp", userController.resetPasswordOTP);
+router.post('/reset-password-otp', userController.resetPasswordOTP);
 
-router.post("/reset-password", userController.resetPassword);
+router.post('/reset-password', userController.resetPassword);
 
 // router.post(
 //   "/send-forget-password-link",
@@ -38,15 +38,17 @@ router.post("/reset-password", userController.resetPassword);
 //   userController.sendForgetPasswordResetCode
 // );
 
-router.get("/sign-up-google", userController.signUpWithGoogle);
-router.get("/sign-up-facebook", userController.signUpWithFacebook);
-router.get("/sign-up-github", userController.signUpWithGithub);
-router.get("/get-user-info", authenticateJWT, userController.getUserInfo);
+router.get('/sign-up-google', userController.signUpWithGoogle);
+router.get('/sign-up-facebook', userController.signUpWithFacebook);
+router.get('/sign-up-github', userController.signUpWithGithub);
+
+router.get('/get-user-info', authenticateJWT, userController.getUserInfo);
+router.put('', authenticateJWT, userController.updateUserProfile);
 // router.get("/get-user-info", userController.getUserInfo);
 
-router.get("/sign-up-sms", userController.signUpWithSMS);
+router.get('/sign-up-sms', userController.signUpWithSMS);
 
-router.get("/filter-user", authenticateJWT, userController.filterUser);
+router.get('/filter-user', authenticateJWT, userController.filterUser);
 
 // signup with phone number
 // + input phone_number

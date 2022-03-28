@@ -1,0 +1,39 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Users {
+  id             String          @id @default(uuid())
+  username       String?         @db.VarChar(255)
+  email          String?         @db.VarChar(255)
+  phone_number   String?         @db.VarChar(255)
+  password       String?         @db.VarChar(255)
+  profile_src    String?         @db.VarChar(255)
+  avatar         String?
+  otp_code       String?         @db.VarChar(255)
+  account_type   enum_user_type
+
+  first_name     String?         
+  last_name      String?        
+
+  token          String?
+  reset_token    String?
+
+  is_verify      Boolean?
+  is_admin       Boolean?
+  created_at     DateTime        @default(now())
+  updated_at     DateTime        @default(now())
+}
+
+
+enum enum_user_type {
+  default
+  oa
+  admin
+  app
+}

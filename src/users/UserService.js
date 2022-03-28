@@ -1,18 +1,14 @@
-const { CRUDService } = require("./crud");
-const UtilsService = require("./utils");
-const jwt = require("jsonwebtoken");
-const twilioService = require("./twilio-service");
-const models = require("../database/models");
-const { Op } = require("sequelize");
-const mailService = require("./mails");
+const prisma = require('../database/DatabaseService');
+const UtilsService = require('../utils/UtilsService');
+const jwt = require('jsonwebtoken');
+const twilioService = require('../otp/OTPService');
+const mailService = require('../email/EmailService');
 
 const MAX_OTP_CHARACTERS = 4;
 
-class UserService extends CRUDService {
-  constructor(model) {
-    super(model);
+class UserService {
+  constructor() {
     this.utilsService = new UtilsService();
-    this.usersAccountService = new CRUDService(models.UsersAccount);
   }
 
   generateOTP = (max = MAX_OTP_CHARACTERS) => {
@@ -28,35 +24,63 @@ class UserService extends CRUDService {
       updatedAt: existedUser.updatedAt,
     };
     return jwt.sign({ user: user }, process.env.JWT_SECRET_KEY, {
-      expiresIn: "24h",
+      expiresIn: '24h',
     });
   };
 
-  signIn = async (userPayload) => {
-    const { email, otp, ua_source } = userPayload;
-    const existedUser = await this.firstRow({ email: email });
-    if (existedUser) {
-      const isOTPCorrect = otp === existedUser.otp_code;
-      if (!isOTPCorrect) {
-        throw new Error("OTP is not correct");
-      }
-      if (!existedUser.is_verify) {
-        throw new Error("Your account is not activated yet");
-      }
-      const newToken = await this.getNewToken(existedUser);
-      // console.log("signIn new set: ua_source")
-      // existedUser.ua_source = ua_source
-      existedUser.token = newToken;
-      existedUser.otp_code = null;
-      existedUser.is_verify = true;
-      await existedUser.save();
-      return {
-        user: {
-          email: existedUser.email,
-        },
-        token: newToken,
-      };
-    }
+  signInWithEmail = async (email, password) => {
+    const user = await prisma.users.findFirst({
+      where: { email: email },
+    });
+
+    if (!user) throw new Error('User Not Found!');
+
+    const validPassword = await this.utilsService.comparePassword(
+      password,
+      user.password
+    );
+
+    if (!validPassword) throw new Error('Wrong username or password!');
+
+    user.token = '';
+    const token = jwt.sign({ data: user }, process.env.JWT_SECRET_KEY, {
+      expiresIn: '7d',
+    });
+    user.token = token;
+    return prisma.users.update({
+      where: { id: user.id },
+      data: user,
+      select: {
+        id: true,
+        email: true,
+        token: true,
+      },
+    });
+  };
+
+  signInWithPhone = async (phone_number, password) => {
+    const user = await prisma.users.findFirst({
+      where: {
+        phone_number: phone_number,
+      },
+    });
+
+    if (!user) throw new Error('User not Found!');
+
+    const validPassword = await this.utilsService.comparePassword(
+      password,
+      user.password
+    );
+
+    if (!validPassword) throw new Error('Wrong username or password!');
+
+    user.token = '';
+    const token = jwt.sign({ data: user }, process.env.JWT_SECRET_KEY, {
+      expiresIn: '7d',
+    });
+    user.token = token;
+
+    return prisma.users.update(user);
   };
 
   getAllUsers = async (req, res) => {
@@ -75,7 +99,7 @@ class UserService extends CRUDService {
       if (user) {
         return res.status(200).json({ user });
       }
-      return res.status(404).send("user with the specified ID does not exists");
+      return res.status(404).send('user with the specified ID does not exists');
     } catch (error) {
       return res.status(500).send(error.message);
     }
@@ -89,7 +113,7 @@ class UserService extends CRUDService {
         const updatedUser = await this.firstRow({ id: userId });
         return res.status(200).json({ post: updatedUser });
       }
-      throw new Error("User not found");
+      throw new Error('User not found');
     } catch (error) {
       return res.status(500).send(error.message);
     }
@@ -100,9 +124,9 @@ class UserService extends CRUDService {
       const { userId } = req.params;
       const deleted = await this.delete({ id: userId });
       if (deleted) {
-        return res.status(204).send("User deleted");
+        return res.status(204).send('User deleted');
       }
-      throw new Error("User not found");
+      throw new Error('User not found');
     } catch (error) {
       return res.status(500).send(error.message);
     }
@@ -110,17 +134,17 @@ class UserService extends CRUDService {
 
   sendForgetPasswordLink = async (email) => {
     const user = await this.firstRow({ email: email });
-    if (!user) return { error: "Email or username not found!" };
+    if (!user) return { error: 'Email or username not found!' };
 
     let r = Math.random().toString(36).substring(7);
     user.reset_token = r;
     await user.save();
     const confirm_url =
-      "https" +
+      'https' +
       process.env.DOMAIN +
-      "/sso/users/reset-password-email?email=" +
+      '/sso/users/reset-password-email?email=' +
       user.email +
-      "&reset_token=" +
+      '&reset_token=' +
       r;
     try {
       const data = mailService.sendForgotMail(user.email, confirm_url);
@@ -132,14 +156,14 @@ class UserService extends CRUDService {
 
   sendForgetPasswordResetCode = async (email) => {
     const user = await this.firstRow({ email: email });
-    if (!user) return { error: "Email or username not found!" };
+    if (!user) return { error: 'Email or username not found!' };
 
     const reset_code = Math.floor(100000 + Math.random() * 900000);
     user.reset_token = reset_code;
 
     try {
       const saveUser = await user.save();
-      if (!saveUser) return { error: "Failed to generate Reset Code" };
+      if (!saveUser) return { error: 'Failed to generate Reset Code' };
 
       await mailService.sendForgotResetCode(user.email, reset_code);
     } catch (error) {
@@ -148,15 +172,22 @@ class UserService extends CRUDService {
   };
 
   sendOTPEmail = async (email) => {
-    const user = await this.firstRow({ email });
-    if (!user) return { error: "Email or username not found!" };
+    const user = await prisma.users.findFirst({
+      where: { email: email },
+    });
 
-    const otp = Math.floor(100000 + Math.random() * 900000);
-    user.otp_code = otp;
+    if (!user) return { error: 'Email or username not found!' };
 
     try {
-      const saveUser = await user.save();
-      if (!saveUser) return { error: "Failed to generate OTP" };
+      const otp = Math.floor(100000 + Math.random() * 900000);
+      const saveUser = await prisma.users.update({
+        where: { id: user.id },
+        data: {
+          otp_code: `${otp}`,
+        },
+      });
+
+      if (!saveUser) return { error: 'Failed to generate OTP' };
 
       await mailService.sendOTPEmail(user.email, otp);
     } catch (error) {
@@ -166,17 +197,20 @@ class UserService extends CRUDService {
 
   verifyOTPEmail = async (email, otp_code) => {
     try {
-      const user = await this.firstRow({ email });
-      if (!user) return { error: "User Not found!!!" };
+      const user = await prisma.users.findFirst({
+        where: {
+          email: email,
+        },
+      });
+      if (!user) return { error: 'User Not found!!!' };
 
       if (user.otp_code === otp_code) {
         user.is_verify = true;
         user.save();
-
         return user;
       }
 
-      return { error: "Wrong OTP" };
+      return { error: 'Wrong OTP' };
     } catch (error) {
       throw error;
     }
@@ -209,39 +243,39 @@ class UserService extends CRUDService {
     try {
       const verifyOtp = await twilioService.verifyOtp(phoneNumber, otp);
 
-      if (verifyOtp.status === "approved" && verifyOtp.valid) {
+      if (verifyOtp.status === 'approved' && verifyOtp.valid) {
         const user = await this.firstRow({ email });
 
         if (user) {
           if (!phoneNumber && !otp) {
-            return { error: "account already registed with different method" };
+            return { error: 'account already registed with different method' };
           }
 
           const newToken = jwt.sign(
             { user: user },
             process.env.JWT_SECRET_KEY,
             {
-              expiresIn: "7d",
+              expiresIn: '7d',
             }
           );
 
           user.token = newToken;
           user.save();
-          console.log("EMAIL IN IF: ", email);
+          console.log('EMAIL IN IF: ', email);
 
           const { token, is_admin } = user;
 
-          console.log("EMAIL IN IF: ", email);
+          console.log('EMAIL IN IF: ', email);
 
           const result = {
             email,
             token,
             is_admin,
-            avatar: "",
-            name: "",
-            firstname: "",
-            lastname: "",
-            account_type: "twilio",
+            avatar: '',
+            name: '',
+            firstname: '',
+            lastname: '',
+            account_type: 'twilio',
           };
 
           return result;
@@ -254,7 +288,7 @@ class UserService extends CRUDService {
             { user: createUser },
             process.env.JWT_SECRET_KEY,
             {
-              expiresIn: "7d",
+              expiresIn: '7d',
             }
           );
 
@@ -262,7 +296,7 @@ class UserService extends CRUDService {
           createUser.save();
 
           const usersAccount = await this.usersAccountService.create({
-            account_type: "twilio",
+            account_type: 'twilio',
             phone_number: phoneNumber,
             user_id: createUser.id,
           });
@@ -272,39 +306,84 @@ class UserService extends CRUDService {
           if (createUser && usersAccount) {
             const result = {
               email,
-              avatar: "",
-              name: "",
-              firstname: "",
-              lastname: "",
+              avatar: '',
+              name: '',
+              firstname: '',
+              lastname: '',
               account_type,
               token,
             };
             return result;
           } else {
-            return { error: "signup failed due to server error!" };
+            return { error: 'signup failed due to server error!' };
           }
         }
       } else {
-        return { error: "failed to verify otp" };
+        return { error: 'failed to verify otp' };
       }
     } catch (error) {
       return {
         error: error.message,
-        message: "signupWithSms | userService",
+        message: 'signupWithSms | userService',
       };
     }
   };
 
-  getUsersByFilters = async (email) => {
-    // TODO: select user base on name, select users base on name and email
-    // const users = await this.list({ name: filters.name, email: filters.email, phone_number: filters.phoneNumber })
-    const users = await models.User.findAll({
+  update = async (id, user) => {
+    const updateUser = await prisma.users.update({
+      where: { id: id },
+      data: user,
+    });
+  };
+
+  signup = async (user) => {
+    const byPhone = user.phone_number
+      ? {
+          phone_number: user.phone_number,
+        }
+      : {
+          email: user.email,
+        };
+
+    const existed = await prisma.users.findFirst({
       where: {
-        email: email,
+        ...byPhone,
       },
     });
 
-    return users;
+    if (existed) throw new Error('User already existed!');
+
+    const createdUser = await prisma.users.create({
+      data: {
+        ...user,
+        account_type: 'default',
+      },
+      select: {
+        id: true,
+        email: true,
+        username: true,
+        account_type: true,
+      },
+    });
+    if (!createdUser) throw new Error('Failed to create user!');
+
+    const token = jwt.sign({ data: createdUser }, process.env.JWT_SECRET_KEY, {
+      expiresIn: '7d',
+    });
+
+    const updateToken = await prisma.users.update({
+      where: { id: createdUser.id },
+      data: { token: token },
+    });
+    if (!updateToken) throw new Error('Failed to create Token');
+
+    if (user.phone_number) {
+      twilioService.sendOtp(user.phone_number);
+    } else {
+      this.sendOTPEmail(user.email);
+    }
+
+    return createdUser;
   };
 }
 
