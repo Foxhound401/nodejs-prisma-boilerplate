@@ -22,7 +22,7 @@ const validateJWT = (req, res, next) => {
 
     const existedUser = await prisma.users.findFirst({
       where: {
-        email: payload.data.email,
+        id: payload.data.id,
         token: token,
       },
     });
@@ -43,7 +43,7 @@ const validateJWT = (req, res, next) => {
       return res.sendStatus(401);
     }
 
-    req.jwt_middleware = payload.data;
+    req.payload = payload.data;
     next();
   });
 };

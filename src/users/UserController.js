@@ -99,8 +99,8 @@ class UserController {
 
   getUserInfo = async (req, res) => {
     try {
-      const email = req.jwt_middleware?.email;
-      const phone_number = req.jwt_middleware?.phone_number;
+      const email = req.payload?.email;
+      const phone_number = req.payload?.phone_number;
 
       console.log(email);
       console.log(phone_number);
@@ -152,29 +152,10 @@ class UserController {
     }
   };
 
-  updateUserProfile = async () => {
-    try {
-      const id = req.jwt_middleware?.id;
-      const { user } = req.body;
-      const updateUser = this.userService.update(id, user);
-      return res.send({
-        success: true,
-        message: 'Success',
-        data: updateUser,
-      });
-    } catch (error) {
-      console.error(error);
-      return res.send({
-        success: false,
-        message: 'Not available, Please Try again later',
-      });
-    }
-  };
-
   verifyOTP = async (req, res) => {
     try {
-      const email = req.jwt_middleware?.email;
-      const phone_number = req.jwt_middleware?.phone_number;
+      const email = req.payload?.email;
+      const phone_number = req.payload?.phone_number;
       const otp = req.body.otp;
 
       if (!email && !phone_number)
@@ -340,8 +321,8 @@ class UserController {
 
   resendOTP = async (req, res) => {
     try {
-      const email = req.jwt_middleware?.email;
-      const phone_number = req.jwt_middleware?.phone_number;
+      const email = req.payload?.email;
+      const phone_number = req.payload?.phone_number;
 
       if (!email && !phone_number)
         return res
@@ -443,7 +424,7 @@ class UserController {
 
   getCurrentUser = async (req, res) => {
     try {
-      const { id } = req.jwt_middleware;
+      const { id } = req.payload;
       const user = await this.userService.getCurrentUser(id);
       return res.status(200).json({
         user,
@@ -479,6 +460,7 @@ class UserController {
         data: fileResp,
       });
     } catch (error) {
+      console.error(error);
       return res.status(500).send({
         success: false,
         message: 'Server Error',
@@ -515,6 +497,25 @@ class UserController {
       return res.status(500).send({
         success: false,
         message: 'Server Error',
+      });
+    }
+  };
+
+  updateUserProfile = async (req, res) => {
+    try {
+      const id = req.payload?.id;
+      const { user } = req.body;
+      const updateUser = await this.userService.update(id, user);
+      return res.send({
+        success: true,
+        message: 'Success',
+        data: updateUser,
+      });
+    } catch (error) {
+      console.error(error);
+      return res.send({
+        success: false,
+        message: 'Not available, Please Try again later',
       });
     }
   };

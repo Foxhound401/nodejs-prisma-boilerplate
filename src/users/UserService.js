@@ -385,9 +385,24 @@ class UserService {
   };
 
   update = async (id, user) => {
-    const updateUser = await prisma.users.update({
+    if (user.id) throw new Error('Cannot update id');
+    return prisma.users.update({
       where: { id: id },
-      data: user,
+      data: {
+        ...user,
+      },
+      select: {
+        id: true,
+        username: true,
+        email: true,
+        phone_number: true,
+        avatar: true,
+        cover: true,
+        birthday: true,
+        first_name: true,
+        last_name: true,
+        created_at: true,
+      },
     });
   };
 
@@ -461,6 +476,25 @@ class UserService {
     }
 
     return updateToken;
+  };
+
+  getCurrentUser = async (userId) => {
+    if (!userId) throw new Error('user id not found');
+    return prisma.users.findFirst({
+      where: { id: userId },
+      select: {
+        id: true,
+        username: true,
+        email: true,
+        phone_number: true,
+        avatar: true,
+        cover: true,
+        first_name: true,
+        last_name: true,
+        created_at: true,
+        birthday: true,
+      },
+    });
   };
 }
 
