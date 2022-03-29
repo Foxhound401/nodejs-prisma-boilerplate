@@ -28,6 +28,7 @@ class UserService {
         last_name: true,
         created_at: true,
         updated_at: true,
+        birthday: true,
       },
     });
   };
