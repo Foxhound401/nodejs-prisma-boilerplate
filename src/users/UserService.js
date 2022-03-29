@@ -248,6 +248,29 @@ class UserService {
     }
   };
 
+  verifyOTPPhone = async (phone_number, otp_code) => {
+    try {
+      const user = await prisma.users.findFirst({
+        where: {
+          phone_number: phone_number,
+        },
+      });
+      if (!user) return { error: 'User Not found!!!' };
+
+      const verifiedOTP = await verifyOtp(phone_number, otp);
+      if (verifiedOTP !== 'approved' && verifiedOTP.valid) {
+        return await this.userService.update(user.id, {
+          otp_code: otp,
+          is_verify: true,
+        });
+      }
+
+      return { error: 'Wrong OTP' };
+    } catch (error) {
+      throw error;
+    }
+  };
+
   resetPasswordEmail = async (email, reset_token, new_password) => {
     const user = await this.firstRow({ email: email });
     if (user && user.reset_token === reset_token) {
@@ -395,7 +418,6 @@ class UserService {
         email: true,
         username: true,
         account_type: true,
-        token: true,
       },
     });
     if (!createdUser) throw new Error('Failed to create user!');
@@ -422,6 +444,13 @@ class UserService {
     const updateToken = await prisma.users.update({
       where: { id: createdUser.id },
       data: { token: token },
+      select: {
+        id: true,
+        email: true,
+        username: true,
+        account_type: true,
+        token: true,
+      },
     });
     if (!updateToken) throw new Error('Failed to create Token');
 
@@ -431,7 +460,7 @@ class UserService {
       this.sendOTPEmail(user.email);
     }
 
-    return createdUser;
+    return updateToken;
   };
 }
 

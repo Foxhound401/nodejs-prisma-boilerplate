@@ -189,14 +189,18 @@ class UserController {
         });
 
         if (!user) return res.status(404).json({ error: 'User Not Found!' });
-        const verifiedOTP = await verifyOtp(phone_number, otp);
-        if (verifiedOTP !== 'approved' && verifiedOTP.valid) {
-          await this.userService.update(user.id, {
-            otp_code: otp,
-            is_verify: true,
-          });
-        }
-        return res.status(201).send({ message: "successfully verified"});
+
+        const verifiedOTP = await this.userService.verifyOTPPhone(
+          phone_number,
+          otp
+        );
+
+        if (!verifiedOTP)
+          return res
+            .status(400)
+            .json({ error: 'Failed to verify OTP via Phone' });
+
+        return res.status(201).send({ message: 'successfully verified' });
       }
 
       const verifiedOTP = await this.userService.verifyOTPEmail(email, otp);
