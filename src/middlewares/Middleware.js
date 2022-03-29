@@ -20,8 +20,6 @@ const validateJWT = (req, res, next) => {
         .status(401)
         .send({ message: 'Session Expired, Please login again' });
 
-    console.log('PAYLOAD: ', payload);
-
     const existedUser = await prisma.users.findFirst({
       where: {
         email: payload.data.email,

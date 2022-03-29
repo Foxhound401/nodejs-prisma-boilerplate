@@ -2,7 +2,6 @@ const UserService = require('./UserService');
 const UtilsService = require('../utils/UtilsService');
 const FileService = require('../file/FileService');
 const { sendOtp, verifyOtp } = require('../otp/OTPService');
-const { prisma } = require('@prisma/client');
 
 class UserController {
   constructor() {
@@ -371,22 +370,6 @@ class UserController {
     }
   };
 
-  // filterUser = async (req, res) => {
-  //   try {
-  //     const { email } = req.query;
-  //
-  //     console.log(email);
-  //     const users = await this.userService.getUsersByFilters(email);
-  //     console.log(users);
-  //
-  //     return res.status(200).json({
-  //       users,
-  //     });
-  //   } catch (error) {
-  //     return res.status(400).json({ error: error.message });
-  //   }
-  // };
-
   sendForgetPasswordResetCode = async (req, res) => {
     try {
       const { email } = req.query;
@@ -472,31 +455,29 @@ class UserController {
 
   updateUserAvatar = async (req, res) => {
     try {
-      const { jwt_id } = req.jwt_middleware;
       const { id } = req.params;
       const file = {
-        fieldname: req.file.fieldname,
         originalname: req.file.originalname,
         mimetype: req.file.mimetype,
         buffer: req.file.buffer,
         size: req.file.size,
       };
 
-      console.log('FILE: ', file);
-      console.log('JWT_ID: ', jwt_id);
-      console.log('ID PARAMS: ', id);
-
       if (!id)
         return res.status(500).send({
           message: 'id is missing',
         });
 
-      const fileResp = this.fileService.uploadUserAvatar(id, file);
-      console.log('FILE RESP: ', fileResp);
+      const fileResp = await this.fileService.uploadUserAvatar(id, file);
       if (!fileResp)
         return res.status(500).send({
           message: 'failed to upload avatar',
         });
+      return res.send({
+        success: true,
+        message: 'Success',
+        data: fileResp,
+      });
     } catch (error) {
       return res.status(500).send({
         success: false,
@@ -507,6 +488,29 @@ class UserController {
 
   updateUserCover = async (req, res) => {
     try {
+      const { id } = req.params;
+      const file = {
+        originalname: req.file.originalname,
+        mimetype: req.file.mimetype,
+        buffer: req.file.buffer,
+        size: req.file.size,
+      };
+
+      if (!id)
+        return res.status(500).send({
+          message: 'id is missing',
+        });
+
+      const fileResp = await this.fileService.uploadUserCover(id, file);
+      if (!fileResp)
+        return res.status(500).send({
+          message: 'failed to upload cover',
+        });
+      return res.send({
+        success: true,
+        message: 'Success',
+        data: fileResp,
+      });
     } catch (error) {
       return res.status(500).send({
         success: false,

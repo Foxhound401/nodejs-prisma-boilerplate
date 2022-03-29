@@ -7,7 +7,7 @@ class FileService {
     this.userService = new UserService();
   }
 
-  uploadUserAvatar = async (file, userId) => {
+  uploadUserAvatar = async (userId, file) => {
     // TODO: implement getschemafrom request header to know which service
     // send the request
     const schema = 'sso';
@@ -21,6 +21,22 @@ class FileService {
     });
 
     if (!fileResp.Location) throw new Error('Upload avatar failed!');
+
+    return fileData;
+  };
+
+  uploadUserCover = async (userId, file) => {
+    const schema = 'sso';
+    const fileResp = await this.fileRepository.uploadAvatarImage(file, schema);
+    const fileData = {
+      url: fileResp.Location,
+    };
+
+    await this.userService.update(userId, {
+      cover: fileResp.Location,
+    });
+
+    if (!fileResp.Location) throw new Error('Upload cover failed!');
 
     return fileData;
   };
