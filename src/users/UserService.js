@@ -84,6 +84,8 @@ class UserService {
   signInWithPhone = async (phone_number, password) => {
     const user = await prisma.users.findFirst({
       where: {
+        id: true,
+        email: true,
         phone_number: phone_number,
       },
     });
@@ -232,9 +234,12 @@ class UserService {
       if (!user) return { error: 'User Not found!!!' };
 
       if (user.otp_code === otp_code) {
-        user.is_verify = true;
-        user.save();
-        return user;
+        return await prisma.users.update({
+          where: { id: user.id },
+          data: {
+            is_verify: true,
+          },
+        });
       }
 
       return { error: 'Wrong OTP' };
@@ -390,6 +395,7 @@ class UserService {
         email: true,
         username: true,
         account_type: true,
+        token: true,
       },
     });
     if (!createdUser) throw new Error('Failed to create user!');

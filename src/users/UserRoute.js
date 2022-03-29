@@ -3,6 +3,9 @@ const { validateJWT } = require('../middlewares/Middleware');
 const UserController = require('./UserController');
 const validator = require('../middlewares/Validator');
 const UserSchema = require('./UserValidator');
+const multer = require('multer');
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
 
 const router = Router();
 
@@ -12,6 +15,19 @@ router.post('/sign-in', validator(UserSchema.signIn), userController.signIn);
 router.post('/sign-up', validator(UserSchema.signUp), userController.signUp);
 router.get('/get-user-info', validateJWT, userController.getUserInfo);
 router.put('/', validateJWT, userController.updateUserProfile);
+
+router.post(
+  '/:id/avatar/upload',
+  upload.single('file'),
+  validateJWT,
+  userController.updateUserAvatar
+);
+router.post(
+  '/:id/cover/upload',
+  upload.single('file'),
+  validateJWT,
+  userController.updateUserCover
+);
 
 router.get('/resend-otp', validateJWT, userController.resendOTP);
 router.post('/verify-otp', validateJWT, userController.verifyOTP);

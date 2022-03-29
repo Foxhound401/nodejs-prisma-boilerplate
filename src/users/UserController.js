@@ -1,5 +1,6 @@
 const UserService = require('./UserService');
 const UtilsService = require('../utils/UtilsService');
+const FileService = require('../file/FileService');
 const { sendOtp, verifyOtp } = require('../otp/OTPService');
 const { prisma } = require('@prisma/client');
 
@@ -7,6 +8,7 @@ class UserController {
   constructor() {
     this.userService = new UserService();
     this.utilsService = new UtilsService();
+    this.fileService = new FileService();
   }
 
   signIn = async (req, res) => {
@@ -32,7 +34,7 @@ class UserController {
       console.error(error);
       return res.status(500).send({
         success: false,
-        message: 'Unavailable, please try again later',
+        message: error.message,
       });
     }
   };
@@ -99,7 +101,7 @@ class UserController {
   getUserInfo = async (req, res) => {
     try {
       const email = req.jwt_middleware?.email;
-      const phone_number = req.jwt_middlware?.phone_number;
+      const phone_number = req.jwt_middleware?.phone_number;
 
       console.log(email);
       console.log(phone_number);
@@ -153,7 +155,7 @@ class UserController {
 
   updateUserProfile = async () => {
     try {
-      const id = req.user?.id;
+      const id = req.jwt_middleware?.id;
       const { user } = req.body;
       const updateUser = this.userService.update(id, user);
       return res.send({
@@ -172,8 +174,8 @@ class UserController {
 
   verifyOTP = async (req, res) => {
     try {
-      const email = req.user?.email;
-      const phone_number = req.user?.phone_number;
+      const email = req.jwt_middleware?.email;
+      const phone_number = req.jwt_middleware?.phone_number;
       const otp = req.body.otp;
 
       if (!email && !phone_number)
@@ -182,14 +184,19 @@ class UserController {
           .json({ error: 'Wrong format or empty email/phone' });
 
       if (phone_number) {
+        const user = await this.userService.findFirst({
+          phone_number: phone_number,
+        });
+
         if (!user) return res.status(404).json({ error: 'User Not Found!' });
         const verifiedOTP = await verifyOtp(phone_number, otp);
         if (verifiedOTP !== 'approved' && verifiedOTP.valid) {
-          user.otp_code = otp;
-          user.is_verify = true;
-          user.save();
+          await this.userService.update(user.id, {
+            otp_code: otp,
+            is_verify: true,
+          });
         }
-        return res.status(201).json({ data: { is_verify: user.is_verify } });
+        return res.status(201).send({ message: "successfully verified"});
       }
 
       const verifiedOTP = await this.userService.verifyOTPEmail(email, otp);
@@ -330,8 +337,8 @@ class UserController {
 
   resendOTP = async (req, res) => {
     try {
-      const email = req.user?.email;
-      const phone_number = req.user?.phone_number;
+      const email = req.jwt_middleware?.email;
+      const phone_number = req.jwt_middleware?.phone_number;
 
       if (!email && !phone_number)
         return res
@@ -449,13 +456,58 @@ class UserController {
 
   getCurrentUser = async (req, res) => {
     try {
-      const { id } = req.user;
+      const { id } = req.jwt_middleware;
       const user = await this.userService.getCurrentUser(id);
       return res.status(200).json({
         user,
       });
     } catch (error) {
       return res.status(400).json({ error: error.message });
+    }
+  };
+
+  updateUserAvatar = async (req, res) => {
+    try {
+      const { jwt_id } = req.jwt_middleware;
+      const { id } = req.params;
+      const file = {
+        fieldname: req.file.fieldname,
+        originalname: req.file.originalname,
+        mimetype: req.file.mimetype,
+        buffer: req.file.buffer,
+        size: req.file.size,
+      };
+
+      console.log('FILE: ', file);
+      console.log('JWT_ID: ', jwt_id);
+      console.log('ID PARAMS: ', id);
+
+      if (!id)
+        return res.status(500).send({
+          message: 'id is missing',
+        });
+
+      const fileResp = this.fileService.uploadUserAvatar(id, file);
+      console.log('FILE RESP: ', fileResp);
+      if (!fileResp)
+        return res.status(500).send({
+          message: 'failed to upload avatar',
+        });
+    } catch (error) {
+      return res.status(500).send({
+        success: false,
+        message: 'Server Error',
+      });
+    }
+  };
+
+  updateUserCover = async (req, res) => {
+    try {
+    } catch (error) {
+      return res.status(500).send({
+        success: false,
+        message: 'Server Error',
+      });
     }
   };
 }
