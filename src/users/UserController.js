@@ -99,44 +99,18 @@ class UserController {
 
   getUserInfo = async (req, res) => {
     try {
-      const email = req.payload?.email;
-      const phone_number = req.payload?.phone_number;
+      const userId = req.payload?.id;
 
-      console.log(email);
-      console.log(phone_number);
-
-      if (!email && !phone_number)
-        return res
-          .status(422)
-          .json({ error: 'Wrong format or empty email/phone_number' });
-
-      // Create user with phone_number
-      if (phone_number) {
-        const user = await this.userService.findFirst({
-          phone_number,
-        });
-
-        if (!user)
-          return res
-            .status(404)
-            .json({ message: 'User not found!', error: 'Not Found' });
-
-        return res.status(201).json({
-          data: {
-            user: user,
-          },
-        });
-      }
-
-      // Create user with email
       const user = await this.userService.findFirst({
-        email,
+        id: userId,
       });
 
       if (!user) {
-        return res
-          .status(404)
-          .json({ message: 'User not found!', error: 'Not Found' });
+        return res.status(404).send({
+          success: false,
+          message: 'User not found!',
+          error: 'Not Found',
+        });
       }
 
       return res.status(200).json({
@@ -200,37 +174,21 @@ class UserController {
     try {
       const { otp, email_phone } = req.body;
 
-      console.log(otp);
-      console.log(email_phone);
       if (!email_phone || !otp)
         return res
           .status(422)
           .json({ error: 'Wrong format or empty email/phone' });
 
-      const mailRegex = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+      const verifyResp = await this.userService.verifyResetPasswordOTP(
+        email_phone,
+        otp
+      );
 
-      if (!mailRegex.test(email_phone)) {
-        const phone_number = email_phone;
-        const user = await this.userService.firstRow({ phone_number });
-        if (!user) return res.status(404).json({ error: 'User Not Found!' });
-        const verifiedOTP = await verifyOtp(phone_number, otp);
-        if (verifiedOTP !== 'approved' && verifiedOTP.valid) {
-          user.otp_code = otp;
-          user.is_verify = true;
-          user.save();
-        }
-        return res.status(201).json({ data: { is_verify: user.is_verify } });
-      }
-
-      const email = email_phone;
-      const verifiedOTP = await this.userService.verifyOTPEmail(email, otp);
-      if (!verifiedOTP)
-        return res
-          .status(400)
-          .json({ error: 'Failed to verify OTP via Email' });
-      return res
-        .status(201)
-        .json({ data: { is_verify: verifiedOTP.is_verify } });
+      return res.status(201).send({
+        success: true,
+        message: 'success',
+        data: verifyResp,
+      });
     } catch (error) {
       throw error;
     }
@@ -249,59 +207,44 @@ class UserController {
           .status(422)
           .json({ error: 'Wrong format or empty password' });
 
-      const mailRegex = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-      const hashedPassword = await this.utilsService.hashingPassword(
+      const hashed_password = await this.utilsService.hashingPassword(
         new_password
       );
-      console.log(hashedPassword);
 
-      if (!mailRegex.test(email_phone)) {
-        const phone_number = email_phone;
-        const user = await this.userService.firstRow({ phone_number });
-        if (!user) return res.status(404).json({ error: 'User Not Found!' });
+      const changePasswordResp = await this.userService.resetPassword(
+        email_phone,
+        hashed_password
+      );
 
-        user.password = hashedPassword;
-        await user.save();
-
-        return res
-          .status(201)
-          .json({ data: { message: 'Successfully reset password!!', user } });
-      }
-
-      const email = email_phone;
-      const user = await this.userService.firstRow({ email });
-      if (!user) return res.status(404).json({ error: 'User Not Found!' });
-
-      user.password = hashedPassword;
-      await user.save();
-
-      return res
-        .status(201)
-        .json({ data: { message: 'Successfully reset password!!', user } });
+      return res.status(201).send({
+        success: true,
+        message: 'Success',
+        data: changePasswordResp,
+      });
     } catch (error) {
-      throw error;
+      console.error(error);
+      return res.send({
+        success: false,
+        message: 'Unavailable please try again later',
+      });
     }
   };
 
   resendResetPasswordOTP = async (req, res) => {
     try {
-      const email_phone = req.query.email_phone;
+      const { email_phone } = req.query;
 
       if (!email_phone)
         return res
           .status(422)
           .json({ error: 'Wrong format or empty email/phone' });
 
-      const mailRegex = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-
-      if (!mailRegex.test(email_phone)) {
+      if (!this.utilsService.isEmailRegex(email_phone)) {
         const phone_number = email_phone;
-        const user = await this.userService.firstRow({ phone_number });
-        if (!user) return res.status(404).json({ error: 'User Not Found!' });
-        await sendOtp(phone_number);
-        user.is_verify = false;
-        user.otp_code = '';
-        user.save();
+
+        await this.userService.resendOTPForResetPasswordRequest({
+          phone_number,
+        });
 
         return res
           .status(201)
@@ -309,13 +252,19 @@ class UserController {
       }
 
       const email = email_phone;
+      await this.userService.resendOTPForResetPasswordRequest({
+        email,
+      });
 
-      await this.userService.sendOTPEmail(email);
       return res
         .status(201)
         .json({ data: { message: 'Successfully resend OTP!' } });
     } catch (error) {
-      throw error;
+      console.error(error);
+      return res.send({
+        success: false,
+        message: 'Unavailable please try again later',
+      });
     }
   };
 
@@ -330,12 +279,13 @@ class UserController {
           .json({ error: 'Wrong format or empty email/phone' });
 
       if (phone_number) {
-        const user = await this.userService.firstRow({ phone_number });
+        const user = await this.userService.findFirst({ phone_number });
         if (!user) return res.status(404).json({ error: 'User Not Found!' });
         await sendOtp(phone_number);
-        user.is_verify = false;
-        user.otp_code = '';
-        user.save();
+        await this.userService.update(user.id, {
+          is_verify: false,
+          otp_code: '',
+        });
 
         return res
           .status(201)
@@ -378,47 +328,30 @@ class UserController {
           .status(422)
           .json({ error: 'Wrong format or empty for email' });
 
-      const mailRegex = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-
-      // Create user with phone_number
-      if (!mailRegex.test(email_phone)) {
+      if (!this.utilsService.isEmailRegex(email_phone)) {
         const phone_number = email_phone;
 
-        const user = await this.userService.firstRow({
+        await this.userService.sendOTPToVerifyResetPasswordRequest({
           phone_number,
         });
-
-        if (!user)
-          return res.status(404).json({
-            data: { error: 'User Not Found!!' },
-          });
-
-        // SEND OTP VIA TWILIO
-        await sendOtp(phone_number);
 
         return res.status(201).json({
           data: { message: 'OTP send successfully!!', otpSent: true },
         });
       }
 
-      // Create user with email
       const email = email_phone;
-      console.log(email);
-      const user = await this.userService.firstRow({ email });
-
-      if (!user)
-        return res.status(404).json({
-          data: { error: 'User Not Found' },
-        });
-
-      // SEND OTP VIA EMAIL
-      await this.userService.sendOTPEmail(email);
+      await this.userService.sendOTPToVerifyResetPasswordRequest({ email });
 
       return res
         .status(201)
         .json({ data: { message: 'OTP send successfully', otpSent: true } });
     } catch (error) {
-      return res.status(500).json({ error: error.message });
+      console.error(error);
+      return res.status(500).send({
+        success: false,
+        message: 'Send Otp failed',
+      });
     }
   };
 

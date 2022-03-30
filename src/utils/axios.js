@@ -20,11 +20,11 @@ instance.interceptors.request.use(
 
 instance.interceptors.response.use(
   (response) => {
-    console.log(
-      '%c Response Success:',
-      'color: #4CAF50; font-weight: bold',
-      response
-    );
+    // console.log(
+    //   '%c Response Success:',
+    //   'color: #4CAF50; font-weight: bold',
+    //   response
+    // );
     return response;
   },
   (error) => {

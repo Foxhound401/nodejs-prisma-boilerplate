@@ -30,16 +30,29 @@ router.post(
   userController.updateUserCover
 );
 
+// TODO: check reset token for signup
+// these are for signup i think
 router.get('/resend-otp', validateJWT, userController.resendOTP);
 router.post('/verify-otp', validateJWT, userController.verifyOTP);
 
-router.post('/send-reset-password-otp', userController.sendResetPasswordOTP);
-router.get('/resend-reset-password-otp', userController.resendResetPasswordOTP);
-
+// TODO: call api for reset password
+// these two been verified
 router.post(
-  '/verify-reset-password-otp',
+  '/otp/password/send-request-reset',
+  userController.sendResetPasswordOTP
+);
+router.get(
+  '/otp/password/resend-request-reset',
+  userController.resendResetPasswordOTP
+);
+
+// TODO: check code for api verify rest password
+router.post(
+  '/otp/password/verify-request-reset',
   userController.verifyResetPasswordOTP
 );
-router.post('/reset-password-otp', userController.resetPassword);
+
+// TODO: check this api
+router.post('/otp/password/reset', userController.resetPassword);
 
 module.exports = router;

@@ -226,27 +226,16 @@ class UserService {
   };
 
   verifyOTPEmail = async (email, otp_code) => {
-    try {
-      const user = await prisma.users.findFirst({
-        where: {
-          email: email,
-        },
-      });
-      if (!user) return { error: 'User Not found!!!' };
+    const user = await prisma.users.findFirst({
+      where: {
+        email: email,
+      },
+    });
+    if (!user) throw new Error('user not found');
 
-      if (user.otp_code === otp_code) {
-        return await prisma.users.update({
-          where: { id: user.id },
-          data: {
-            is_verify: true,
-          },
-        });
-      }
-
-      return { error: 'Wrong OTP' };
-    } catch (error) {
-      throw error;
-    }
+    if (user.otp_code != otp_code)
+      throw new Error('OTP mismatch, verification failed');
+    return this.update(user.id, { is_verify: true });
   };
 
   verifyOTPPhone = async (phone_number, otp_code) => {
@@ -448,9 +437,10 @@ class UserService {
         where: { id: createdUser.id },
       });
 
-      await socialService.deleteUser(createdUser.id);
+      const social = await socialService.deleteUser(createdUser.id);
 
-      throw new Error('Failed to create user!');
+      console.error('UserService - failed to create social user', social);
+      throw new Error('Failed to create user social!');
     }
 
     const token = jwt.sign({ data: createdUser }, process.env.JWT_SECRET_KEY, {
@@ -496,6 +486,111 @@ class UserService {
         birthday: true,
       },
     });
+  };
+
+  sendOTPToVerifyResetPasswordRequest = async (emailOrPhone) => {
+    const byPhone = emailOrPhone.phone_number
+      ? {
+          phone_number: emailOrPhone.phone_number,
+        }
+      : {
+          email: emailOrPhone.email,
+        };
+
+    const user = await prisma.users.findFirst({
+      where: {
+        ...byPhone,
+      },
+    });
+
+    if (!user) throw new Error('User not Found!');
+
+    if (user.phone_number) {
+      twilioService.sendOtp(user.phone_number);
+    } else {
+      this.sendOTPEmail(user.email);
+    }
+
+    return;
+  };
+
+  resendOTPForResetPasswordRequest = async (emailOrPhone) => {
+    const byPhone = emailOrPhone.phone_number
+      ? {
+          phone_number: emailOrPhone.phone_number,
+        }
+      : {
+          email: emailOrPhone.email,
+        };
+    const user = this.utilsService.findFirst({
+      where: {
+        ...byPhone,
+      },
+    });
+
+    if (!user) throw new Error('User not found!');
+
+    if (user.phone_number) {
+      twilioService.sendOtp(user.phone_number);
+    } else {
+      this.sendOTPEmail(user.email);
+    }
+
+    return;
+  };
+
+  resetPassword = async (email_phone, new_hashed_password) => {
+    let user = {};
+    if (!this.utilsService.isEmailRegex(email_phone)) {
+      user = await this.findFirst({
+        phone_number: email_phone,
+      });
+    } else {
+      user = await this.findFirst({
+        email: email_phone,
+      });
+    }
+
+    if (!user) throw new Error('User not Found');
+
+    return prisma.users.update({
+      where: { id: user.id },
+      data: {
+        password: new_hashed_password,
+      },
+      select: {
+        id: true,
+      },
+    });
+  };
+
+  verifyResetPasswordOTP = async (email_phone, otp) => {
+    let user = {};
+    const isEmail = this.utilsService.isEmailRegex(email_phone);
+    if (!isEmail) {
+      user = await this.findFirst({
+        phone_number: email_phone,
+      });
+    } else {
+      user = await this.findFirst({
+        email: email_phone,
+      });
+    }
+    if (!user) throw new Error('User not Found');
+
+    if (!isEmail) {
+      const verifyResp = await twilioService.sendOtp(email_phone, otp);
+      if (verifyResp !== 'approved' && verifyResp.valid) {
+        return this.update(user.id, {
+          otp_code: otp,
+          is_verify: true,
+        });
+      }
+
+      throw new Error('Failed to verify OTP');
+    }
+
+    return await this.verifyOTPEmail(email_phone, otp);
   };
 }
 
