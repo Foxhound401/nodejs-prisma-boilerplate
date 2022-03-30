@@ -162,9 +162,15 @@ class UserController {
         return res
           .status(400)
           .json({ error: 'Failed to verify OTP via Email' });
-      return res.status(201).json({ data: { is_verify: true } });
+      return res
+        .status(201)
+        .send({ success: true, message: 'Success', data: { is_verify: true } });
     } catch (error) {
-      throw error;
+      console.error(error);
+      return res.send({
+        success: false,
+        message: 'Not available, Please Try again later',
+      });
     }
   };
 
