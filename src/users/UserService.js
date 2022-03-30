@@ -538,17 +538,20 @@ class UserService {
   };
 
   resetPassword = async (email_phone, new_hashed_password) => {
-    let user = {};
-    if (!this.utilsService.isEmailRegex(email_phone)) {
-      user = await this.findFirst({
-        phone_number: email_phone,
-      });
-    } else {
-      user = await this.findFirst({
-        email: email_phone,
-      });
-    }
+    const isEmail = this.utilsService.isEmailRegex(email_phone);
+    const query = isEmail
+      ? {
+          email: email_phone,
+        }
+      : {
+          phone_number: email_phone,
+        };
 
+    const user = await prisma.users.findFirst({
+      where: {
+        ...query,
+      },
+    });
     if (!user) throw new Error('User not Found');
 
     return prisma.users.update({
