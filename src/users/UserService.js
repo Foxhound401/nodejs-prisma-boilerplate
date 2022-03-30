@@ -461,9 +461,11 @@ class UserService {
     if (!updateToken) throw new Error('Failed to create Token');
 
     if (user.phone_number) {
-      twilioService.sendOtp(user.phone_number);
+      console.log('UserService - Signup - twilioService.sendOtp');
+      await twilioService.sendOtp(user.phone_number);
     } else {
-      this.sendOTPEmail(user.email);
+      console.log('UserService - Signup - sendOTPEmail');
+      await this.sendOTPEmail(user.email);
     }
 
     return updateToken;
@@ -522,7 +524,7 @@ class UserService {
       : {
           email: emailOrPhone.email,
         };
-    const user = this.utilsService.findFirst({
+    const user = this.findFirst({
       where: {
         ...byPhone,
       },
