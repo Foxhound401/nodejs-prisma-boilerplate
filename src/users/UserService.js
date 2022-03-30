@@ -563,32 +563,40 @@ class UserService {
   };
 
   verifyResetPasswordOTP = async (email_phone, otp) => {
-    let user = {};
     const isEmail = this.utilsService.isEmailRegex(email_phone);
-    if (!isEmail) {
-      user = await this.findFirst({
-        phone_number: email_phone,
-      });
-    } else {
-      user = await this.findFirst({
-        email: email_phone,
-      });
-    }
+    const query = isEmail
+      ? {
+          email: email_phone,
+        }
+      : {
+          phone_number: email_phone,
+        };
+
+    const user = await prisma.users.findFirst({
+      where: {
+        ...query,
+      },
+    });
     if (!user) throw new Error('User not Found');
 
     if (!isEmail) {
-      const verifyResp = await twilioService.sendOtp(email_phone, otp);
-      if (verifyResp !== 'approved' && verifyResp.valid) {
-        return this.update(user.id, {
-          otp_code: otp,
-          is_verify: true,
-        });
-      }
+      const verifiedOTP = await twilioService.verifyOtp(email_phone, otp);
+      if (verifiedOTP.status !== 'approved' || !verifiedOTP.valid)
+        throw new Error('OTP invalid, please try again');
 
-      throw new Error('Failed to verify OTP');
+      return this.update(user.id, {
+        otp_code: otp,
+        is_verify: true,
+      });
     }
 
-    return await this.verifyOTPEmail(email_phone, otp);
+    if (user.otp_code !== otp)
+      throw new Error('OTP mismatch, verification failed');
+
+    return this.update(user.id, {
+      otp_code: otp,
+      is_verify: true,
+    });
   };
 
   delete = async (userId) => {
