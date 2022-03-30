@@ -54,5 +54,6 @@ router.post(
 
 // TODO: check this api
 router.post('/otp/password/reset', userController.resetPassword);
+router.delete('/', validateJWT, userController.deleteUser);
 
 module.exports = router;

@@ -56,37 +56,25 @@ class UserController {
           .json({ error: 'Wrong format or empty for username' });
 
       // Create user with phone_number
-      if (!this.utilsService.isEmailRegex(email_phone)) {
-        const phone_number = email_phone;
-
-        const user = {
-          phone_number,
-          username,
-          password: await this.utilsService.hashingPassword(password),
-        };
-
-        const createdUser = await this.userService.signup(user);
-
-        return res.status(201).send({
-          success: true,
-          message: 'Success',
-          data: createdUser,
-        });
-      }
-
-      // Create user with email
-      const email = email_phone;
+      const hashed_password = await this.utilsService.hashingPassword(password);
       const user = {
-        email,
+        email_phone,
+        password: hashed_password,
         username,
-        password: await this.utilsService.hashingPassword(password),
       };
-      const createdUser = await this.userService.signup(user);
+
+      const createUserResp = await this.userService.signup(user);
+
+      if (!createUserResp)
+        return res.status(500).send({
+          success: false,
+          message: 'Create User failed',
+        });
 
       return res.status(201).send({
         success: true,
         message: 'Success',
-        data: createdUser,
+        data: createUserResp,
       });
     } catch (error) {
       console.error(error);
@@ -100,7 +88,6 @@ class UserController {
   getUserInfo = async (req, res) => {
     try {
       const userId = req.payload?.id;
-
       const user = await this.userService.findFirst({
         id: userId,
       });
@@ -113,7 +100,7 @@ class UserController {
         });
       }
 
-      return res.status(200).json({
+      return res.status(200).send({
         data: {
           user: user,
         },
@@ -128,43 +115,24 @@ class UserController {
 
   verifyOTP = async (req, res) => {
     try {
-      const email = req.payload?.email;
-      const phone_number = req.payload?.phone_number;
+      const { id } = req.payload;
       const otp = req.body.otp;
 
-      if (!email && !phone_number)
-        return res
-          .status(422)
-          .json({ error: 'Wrong format or empty email/phone' });
+      const verifyOTPResp = await this.userService.verifyOTP(id, otp);
 
-      if (phone_number) {
-        const user = await this.userService.findFirst({
-          phone_number: phone_number,
+      if (!verifyOTPResp)
+        return res.status(500).send({
+          success: false,
+          message: 'failed to verify otp',
         });
 
-        if (!user) return res.status(404).json({ error: 'User Not Found!' });
+      console.log('UserController - VerifyOTP: ', verifyOTPResp);
 
-        const verifiedOTP = await this.userService.verifyOTPPhone(
-          phone_number,
-          otp
-        );
-
-        if (!verifiedOTP)
-          return res
-            .status(400)
-            .json({ error: 'Failed to verify OTP via Phone' });
-
-        return res.status(201).send({ message: 'successfully verified' });
-      }
-
-      const verifiedOTP = await this.userService.verifyOTPEmail(email, otp);
-      if (!verifiedOTP)
-        return res
-          .status(400)
-          .json({ error: 'Failed to verify OTP via Email' });
-      return res
-        .status(201)
-        .send({ success: true, message: 'Success', data: { is_verify: true } });
+      return res.status(201).send({
+        success: true,
+        message: 'Success',
+        data: { is_verify: true, ...verifyOTPResp },
+      });
     } catch (error) {
       console.error(error);
       return res.send({
@@ -447,6 +415,24 @@ class UserController {
         success: true,
         message: 'Success',
         data: updateUser,
+      });
+    } catch (error) {
+      console.error(error);
+      return res.send({
+        success: false,
+        message: 'Not available, Please Try again later',
+      });
+    }
+  };
+
+  deleteUser = async (req, res) => {
+    try {
+      const id = req.payload?.id;
+      const deleteUserResp = await this.userService.delete(id);
+      return res.send({
+        success: true,
+        message: 'Success',
+        data: deleteUserResp,
       });
     } catch (error) {
       console.error(error);
