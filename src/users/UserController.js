@@ -151,18 +151,21 @@ class UserController {
           .status(422)
           .json({ error: 'Wrong format or empty email/phone' });
 
-      const verifyResp = await this.userService.verifyResetPasswordOTP(
-        email_phone,
-        otp
-      );
+      await this.userService.verifyResetPasswordOTP(email_phone, otp);
 
       return res.status(201).send({
         success: true,
         message: 'success',
-        data: verifyResp,
+        data: {
+          is_verify: true,
+        },
       });
     } catch (error) {
-      throw error;
+      console.error(error);
+      return res.send({
+        success: false,
+        message: 'Unavailable please try again later',
+      });
     }
   };
 
