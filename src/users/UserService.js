@@ -507,7 +507,7 @@ class UserService {
 
     if (!user) throw new Error('User not Found!');
 
-    if (user.phone_number) {
+    if (emailOrPhone.phone_number) {
       twilioService.sendOtp(user.phone_number);
     } else {
       this.sendOTPEmail(user.email);
@@ -532,7 +532,7 @@ class UserService {
 
     if (!user) throw new Error('User not found!');
 
-    if (user.phone_number) {
+    if (emailOrPhone.phone_number) {
       twilioService.sendOtp(user.phone_number);
     } else {
       this.sendOTPEmail(user.email);
