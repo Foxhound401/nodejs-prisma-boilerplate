@@ -29,6 +29,8 @@ class UserService {
         created_at: true,
         updated_at: true,
         birthday: true,
+        is_admin: true,
+        profile_src: true
       },
     });
   };
