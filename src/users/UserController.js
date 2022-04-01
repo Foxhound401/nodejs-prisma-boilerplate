@@ -87,7 +87,7 @@ class UserController {
 
   getUserInfo = async (req, res) => {
     try {
-      const userId = req.payload?.id;
+      const userId = req.jwt_payload?.id;
       const user = await this.userService.findFirst({
         id: userId,
       });
@@ -115,7 +115,7 @@ class UserController {
 
   verifyOTP = async (req, res) => {
     try {
-      const { id } = req.payload;
+      const { id } = req.jwt_payload;
       const otp = req.body.otp;
 
       const verifyOTPResp = await this.userService.verifyOTP(id, otp);
@@ -245,8 +245,8 @@ class UserController {
 
   resendOTP = async (req, res) => {
     try {
-      const email = req.payload?.email;
-      const phone_number = req.payload?.phone_number;
+      const email = req.jwt_payload?.email;
+      const phone_number = req.jwt_payload?.phone_number;
 
       if (!email && !phone_number)
         return res
@@ -332,7 +332,7 @@ class UserController {
 
   getCurrentUser = async (req, res) => {
     try {
-      const { id } = req.payload;
+      const { id } = req.jwt_payload;
       const user = await this.userService.getCurrentUser(id);
       return res.status(200).json({
         user,
@@ -411,7 +411,7 @@ class UserController {
 
   updateUserProfile = async (req, res) => {
     try {
-      const id = req.payload?.id;
+      const id = req.jwt_payload?.id;
       const { user } = req.body;
       const updateUser = await this.userService.update(id, user);
       return res.send({
@@ -430,12 +430,32 @@ class UserController {
 
   deleteUser = async (req, res) => {
     try {
-      const id = req.payload?.id;
+      const id = req.jwt_payload?.id;
       const deleteUserResp = await this.userService.delete(id);
       return res.send({
         success: true,
         message: 'Success',
         data: deleteUserResp,
+      });
+    } catch (error) {
+      console.error(error);
+      return res.send({
+        success: false,
+        message: 'Not available, Please Try again later',
+      });
+    }
+  };
+
+  search = async (req, res) => {
+    try {
+      const { id } = req.jwt_payload;
+      const { search_input } = req.params;
+      const searchResp = await this.userService.search(id, search_input);
+
+      return res.status(201).send({
+        success: true,
+        message: 'Success',
+        data: searchResp,
       });
     } catch (error) {
       console.error(error);

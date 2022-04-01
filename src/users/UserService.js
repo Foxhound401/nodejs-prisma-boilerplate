@@ -614,6 +614,40 @@ class UserService {
       select: { id: true },
     });
   };
+
+  search = async (userId, searchInput) => {
+    const currentUser = await prisma.users.findFirst({
+      where: {
+        id: userId,
+      },
+    });
+
+    const userSearch = await prisma.users.findMany({
+      where: {
+        OR: [
+          {
+            email: {
+              contains: searchInput,
+            },
+          },
+          {
+            phone_number: {
+              contains: searchInput,
+            },
+          },
+        ],
+      },
+      select: {
+        id: true,
+        avatar: true,
+        cover: true,
+        email: true,
+        phone_number: true,
+      },
+    });
+
+    return userSearch.filter((user) => user.id !== currentUser.id);
+  };
 }
 
 module.exports = UserService;

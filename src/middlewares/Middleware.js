@@ -43,7 +43,7 @@ const validateJWT = (req, res, next) => {
       return res.sendStatus(401);
     }
 
-    req.payload = payload.data;
+    req.jwt_payload = payload.data;
     next();
   });
 };
