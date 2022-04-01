@@ -640,6 +640,7 @@ class UserService {
       select: {
         id: true,
         avatar: true,
+        username: true,
         cover: true,
         email: true,
         phone_number: true,
