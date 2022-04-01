@@ -450,7 +450,8 @@ class UserController {
     try {
       const { id } = req.jwt_payload;
       const { search_input } = req.params;
-      const searchResp = await this.userService.search(id, search_input);
+      const parsed_search_input = search_input.toLowerCase();
+      const searchResp = await this.userService.search(id, parsed_search_input);
 
       return res.status(201).send({
         success: true,

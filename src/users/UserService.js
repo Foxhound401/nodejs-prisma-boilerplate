@@ -30,7 +30,7 @@ class UserService {
         updated_at: true,
         birthday: true,
         is_admin: true,
-        profile_src: true
+        profile_src: true,
       },
     });
   };
