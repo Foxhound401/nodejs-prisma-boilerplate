@@ -644,6 +644,7 @@ class UserService {
         cover: true,
         email: true,
         phone_number: true,
+        created_at: true,
       },
     });
 
