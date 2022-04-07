@@ -35,7 +35,41 @@ const deleteUser = async (system_user_id) => {
   }
 };
 
+const updateUserAvatar = async (avatar) => {
+  try {
+    const res = await Api({
+      url: '/users',
+      method: 'PUT',
+      data: {
+        avatar,
+      },
+    });
+
+    return res;
+  } catch (error) {
+    throw error;
+  }
+};
+
+const updateUserCover = async (cover) => {
+  try {
+    const res = await Api({
+      url: '/users',
+      method: 'PUT',
+      data: {
+        cover: cover,
+      },
+    });
+
+    return res;
+  } catch (error) {
+    throw error;
+  }
+};
+
 module.exports = {
   createUser,
   deleteUser,
+  updateUserAvatar,
+  updateUserCover,
 };

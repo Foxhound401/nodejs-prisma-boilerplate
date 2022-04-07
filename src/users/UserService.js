@@ -23,6 +23,7 @@ class UserService {
         email: true,
         phone_number: true,
         avatar: true,
+        cover: true,
         account_type: true,
         first_name: true,
         last_name: true,
