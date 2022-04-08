@@ -1,12 +1,14 @@
 const FileRepository = require('./FileRepository');
 const UserService = require('../users/UserService');
-const SocialService = require('../social/SocialService');
+const {
+  updateUserCover,
+  updateUserAvatar,
+} = require('../social/SocialService');
 
 class FileService {
   constructor() {
     this.fileRepository = new FileRepository();
     this.userService = new UserService();
-    this.socialService = new SocialService();
   }
 
   uploadUserAvatar = async (userId, file) => {
@@ -23,7 +25,7 @@ class FileService {
     });
 
     //TODO: observale pattern
-    await this.socialService.updateUserAvatar(userId, {
+    await updateUserAvatar(userId, {
       avatar: fileResp.Location,
     });
 
@@ -44,7 +46,7 @@ class FileService {
     });
 
     //TODO: observale pattern
-    await this.socialService.updateUserCover(userId, {
+    await updateUserCover(userId, {
       cover: fileResp.Location,
     });
 
