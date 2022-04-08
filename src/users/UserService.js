@@ -424,6 +424,7 @@ class UserService {
         account_type: true,
       },
     });
+
     if (!createdUser) throw new Error('Failed to create user!');
 
     // TODO: implement Observer to relay user

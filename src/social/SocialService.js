@@ -35,13 +35,16 @@ const deleteUser = async (system_user_id) => {
   }
 };
 
-const updateUserAvatar = async (avatar) => {
+const updateUserAvatar = async (system_user_id, avatar) => {
   try {
     const res = await Api({
       url: '/users',
       method: 'PUT',
       data: {
-        avatar,
+        system_user_id,
+        data: {
+          avatar,
+        },
       },
     });
 
@@ -51,13 +54,16 @@ const updateUserAvatar = async (avatar) => {
   }
 };
 
-const updateUserCover = async (cover) => {
+const updateUserCover = async (system_user_id, cover) => {
   try {
     const res = await Api({
       url: '/users',
       method: 'PUT',
       data: {
-        cover: cover,
+        system_user_id,
+        data: {
+          cover,
+        },
       },
     });
 
