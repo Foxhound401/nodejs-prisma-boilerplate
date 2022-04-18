@@ -63,7 +63,6 @@ class UserController {
         username,
       };
 
-      console.log("USER_SIGNUP_SOCIAL")
       const createUserResp = await this.userService.signup(user);
 
       if (!createUserResp)
