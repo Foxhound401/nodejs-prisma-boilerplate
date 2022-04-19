@@ -20,8 +20,8 @@ sequenceDiagram
   SSOService ->> Client: Send response
 ```
 
-
 ## Signup flow (OTP related) phone_number
+
 ```mermaid
 sequenceDiagram
   participant Client
@@ -46,6 +46,7 @@ sequenceDiagram
 ```
 
 ## Signin flow (OTP when user not verified) phone_number
+
 ```mermaid
 sequenceDiagram
   participant Client
@@ -53,7 +54,7 @@ sequenceDiagram
   participant SMSService
 
   Client ->> SSOService: Send email or phone_number
-  Note right of SSOService: check for `is_verified` 
+  Note right of SSOService: check for `is_verified`
   SSOService ->> SSOService: Check if `is_verified` is true
   alt not verified
     SSOService ->> Client: send verification request
