@@ -20,6 +20,10 @@ class UserService {
     this.utilsService = new UtilsService();
   }
 
+  validPassword(input, query) {
+    return this.utilsService.comparePassword(input, query);
+  }
+
   findFirst = async (query) => {
     return prisma.users.findFirst({
       where: {
@@ -48,16 +52,10 @@ class UserService {
     return this.utilsService.getRandomString(max);
   };
 
-  getNewToken = async (existedUser) => {
-    let user = {
-      id: existedUser.id,
-      email: existedUser.email,
-      password: await this.utilsService.hashingPassword(new Date().toString()),
-      createdAt: existedUser.createdAt,
-      updatedAt: existedUser.updatedAt,
-    };
-    return jwt.sign({ user: user }, process.env.JWT_SECRET_KEY, {
-      expiresIn: '24h',
+  generateToken = async (data) => {
+    data.token = '';
+    return jwt.sign({ data: data }, process.env.JWT_SECRET_KEY, {
+      expiresIn: '7d',
     });
   };
 
@@ -73,30 +71,6 @@ class UserService {
       if (!saveUser) return { error: 'Failed to generate Reset Code' };
 
       await mailService.sendForgotResetCode(user.email, reset_code);
-    } catch (error) {
-      throw error;
-    }
-  };
-
-  sendOTPEmail = async (email) => {
-    const user = await prisma.users.findFirst({
-      where: { email: email },
-    });
-
-    if (!user) return { error: 'Email or username not found!' };
-
-    try {
-      const otp = Math.floor(100000 + Math.random() * 900000);
-      const saveUser = await prisma.users.update({
-        where: { id: user.id },
-        data: {
-          otp_code: `${otp}`,
-        },
-      });
-
-      if (!saveUser) return { error: 'Failed to generate OTP' };
-
-      await mailService.sendOTPEmail(user.email, otp);
     } catch (error) {
       throw error;
     }
@@ -145,8 +119,52 @@ class UserService {
         first_name: true,
         last_name: true,
         created_at: true,
+        is_verify: true,
+        token: true,
       },
     });
+  };
+
+  signin = async (email_phone, password) => {
+    const byPhone = this.utilsService.isEmailRegex(email_phone)
+      ? {
+          email: email_phone,
+        }
+      : {
+          phone_number: email_phone,
+        };
+
+    const existed = await prisma.users.findFirst({
+      where: {
+        ...byPhone,
+      },
+    });
+
+    if (!existed)
+      throw new UserError(
+        HttpStatus.BAD_REQUEST,
+        ErrorCode.USER_NON_EXISTED,
+        'User Not Existed!'
+      );
+
+    if (!this.validPassword(password, existed.password))
+      throw new UserError(
+        HttpStatus.BAD_REQUEST,
+        ErrorCode.PASSWORD_INVALID,
+        'Password Invalid!'
+      );
+
+    if (!existed.is_verify) {
+      await this.sendOTP(email_phone);
+      throw new UserError(
+        HttpStatus.UNAUTHORIZED,
+        ErrorCode.USER_NON_VERIFIED,
+        'User Not Yet Verified!'
+      );
+    }
+
+    const token = await this.generateToken(existed);
+    return this.update(existed.id, { token });
   };
 
   signup = async (user) => {
@@ -236,6 +254,37 @@ class UserService {
         birthday: true,
       },
     });
+  };
+
+  sendOTP = async (emailPhone) => {
+    if (!this.utilsService.isEmailRegex(emailPhone))
+      return twilioService.sendOtp(email_phone);
+
+    return this.sendOTPEmail(emailPhone);
+  };
+
+  sendOTPEmail = async (email) => {
+    const user = await prisma.users.findFirst({
+      where: { email: email },
+    });
+
+    if (!user) return { error: 'Email or username not found!' };
+
+    try {
+      const otp = Math.floor(100000 + Math.random() * 900000);
+      const saveUser = await prisma.users.update({
+        where: { id: user.id },
+        data: {
+          otp_code: `${otp}`,
+        },
+      });
+
+      if (!saveUser) return { error: 'Failed to generate OTP' };
+
+      await mailService.sendOTPEmail(user.email, otp);
+    } catch (error) {
+      throw error;
+    }
   };
 
   sendOTPToVerifyResetPasswordRequest = async (emailOrPhone) => {

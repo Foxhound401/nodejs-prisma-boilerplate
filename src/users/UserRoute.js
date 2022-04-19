@@ -34,7 +34,7 @@ router.post(
 );
 
 router.get('/resend-otp', validateJWT, userController.resendOTP);
-router.post('/verify-otp', validateJWT, userController.verifyOTP);
+router.post('/verify-otp', userController.verifyOTP);
 
 router.post(
   '/otp/password/send-request-reset',
