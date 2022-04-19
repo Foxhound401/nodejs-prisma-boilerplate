@@ -13,6 +13,9 @@ const userController = new UserController();
 
 router.post('/sign-in', validator(UserSchema.signIn), userController.signIn);
 router.post('/sign-up', validator(UserSchema.signUp), userController.signUp);
+// After signup OTP flow should be applied
+// that is:
+// signup -> SendOTP -> VerifyOTP/ResendOTP ->
 router.get('/get-user-info', validateJWT, userController.getUserInfo);
 router.get('/profile', validateJWT, userController.getCurrentUser);
 router.put('/', validateJWT, userController.updateUserProfile);
@@ -41,15 +44,13 @@ router.get(
   '/otp/password/resend-request-reset',
   userController.resendResetPasswordOTP
 );
-
 router.post(
   '/otp/password/verify-request-reset',
   userController.verifyResetPasswordOTP
 );
-
 router.post('/otp/password/reset', userController.resetPassword);
-router.delete('/', validateJWT, userController.deleteUser);
 
+router.delete('/:id', userController.deleteUser);
 router.get('/search/:search_input', validateJWT, userController.search);
 
 module.exports = router;

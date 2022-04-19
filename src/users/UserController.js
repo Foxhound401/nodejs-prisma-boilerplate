@@ -78,9 +78,10 @@ class UserController {
       });
     } catch (error) {
       console.error(error);
-      return res.send({
-        success: false,
-        message: 'Unavailable please try again later',
+      return res.status(error.httpStatus ? error.httpStatus : 500).send({
+        success: error?.success,
+        message: error?.message,
+        errorCode: error?.errorCode,
       });
     }
   };
@@ -138,6 +139,114 @@ class UserController {
       return res.send({
         success: false,
         message: 'Not available, Please Try again later',
+      });
+    }
+  };
+
+  resendOTP = async (req, res) => {
+    try {
+      const email = req.jwt_payload?.email;
+      const phone_number = req.jwt_payload?.phone_number;
+
+      if (!email && !phone_number)
+        return res
+          .status(422)
+          .json({ error: 'Wrong format or empty email/phone' });
+
+      if (phone_number) {
+        const user = await this.userService.findFirst({ phone_number });
+        if (!user) return res.status(404).json({ error: 'User Not Found!' });
+        await sendOtp(phone_number);
+        await this.userService.update(user.id, {
+          is_verify: false,
+          otp_code: '',
+        });
+
+        return res
+          .status(201)
+          .json({ data: { message: 'Successfully resend OTP!' } });
+      }
+
+      await this.userService.sendOTPEmail(email);
+      return res
+        .status(201)
+        .json({ data: { message: 'Successfully resend OTP!' } });
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  sendResetPasswordOTP = async (req, res) => {
+    try {
+      const { email_phone } = req.body;
+      console.log(email_phone);
+
+      if (!email_phone)
+        return res
+          .status(422)
+          .json({ error: 'Wrong format or empty for email' });
+
+      if (!this.utilsService.isEmailRegex(email_phone)) {
+        const phone_number = email_phone;
+
+        await this.userService.sendOTPToVerifyResetPasswordRequest({
+          phone_number,
+        });
+
+        return res.status(201).json({
+          data: { message: 'OTP send successfully!!', otpSent: true },
+        });
+      }
+
+      const email = email_phone;
+      await this.userService.sendOTPToVerifyResetPasswordRequest({ email });
+
+      return res
+        .status(201)
+        .json({ data: { message: 'OTP send successfully', otpSent: true } });
+    } catch (error) {
+      console.error(error);
+      return res.status(500).send({
+        success: false,
+        message: 'Send Otp failed',
+      });
+    }
+  };
+
+  resendResetPasswordOTP = async (req, res) => {
+    try {
+      const { email_phone } = req.query;
+
+      if (!email_phone)
+        return res
+          .status(422)
+          .json({ error: 'Wrong format or empty email/phone' });
+
+      if (!this.utilsService.isEmailRegex(email_phone)) {
+        const phone_number = email_phone;
+
+        await this.userService.resendOTPForResetPasswordRequest({
+          phone_number,
+        });
+
+        return res
+          .status(201)
+          .json({ data: { message: 'Successfully resend OTP!' } });
+      }
+
+      const email = email_phone;
+      await this.userService.resendOTPForResetPasswordRequest({
+        email,
+      });
+
+      return res
+        .status(201)
+        .json({ data: { message: 'Successfully resend OTP!' } });
+    } catch (error) {
+      console.error(error);
+      return res.send({
+        success: false,
+        message: 'Unavailable please try again later',
       });
     }
   };
@@ -201,131 +310,6 @@ class UserController {
       return res.send({
         success: false,
         message: 'Unavailable please try again later',
-      });
-    }
-  };
-
-  resendResetPasswordOTP = async (req, res) => {
-    try {
-      const { email_phone } = req.query;
-
-      if (!email_phone)
-        return res
-          .status(422)
-          .json({ error: 'Wrong format or empty email/phone' });
-
-      if (!this.utilsService.isEmailRegex(email_phone)) {
-        const phone_number = email_phone;
-
-        await this.userService.resendOTPForResetPasswordRequest({
-          phone_number,
-        });
-
-        return res
-          .status(201)
-          .json({ data: { message: 'Successfully resend OTP!' } });
-      }
-
-      const email = email_phone;
-      await this.userService.resendOTPForResetPasswordRequest({
-        email,
-      });
-
-      return res
-        .status(201)
-        .json({ data: { message: 'Successfully resend OTP!' } });
-    } catch (error) {
-      console.error(error);
-      return res.send({
-        success: false,
-        message: 'Unavailable please try again later',
-      });
-    }
-  };
-
-  resendOTP = async (req, res) => {
-    try {
-      const email = req.jwt_payload?.email;
-      const phone_number = req.jwt_payload?.phone_number;
-
-      if (!email && !phone_number)
-        return res
-          .status(422)
-          .json({ error: 'Wrong format or empty email/phone' });
-
-      if (phone_number) {
-        const user = await this.userService.findFirst({ phone_number });
-        if (!user) return res.status(404).json({ error: 'User Not Found!' });
-        await sendOtp(phone_number);
-        await this.userService.update(user.id, {
-          is_verify: false,
-          otp_code: '',
-        });
-
-        return res
-          .status(201)
-          .json({ data: { message: 'Successfully resend OTP!' } });
-      }
-
-      await this.userService.sendOTPEmail(email);
-      return res
-        .status(201)
-        .json({ data: { message: 'Successfully resend OTP!' } });
-    } catch (error) {
-      throw error;
-    }
-  };
-
-  sendForgetPasswordResetCode = async (req, res) => {
-    try {
-      const { email } = req.query;
-      await this.userService
-        .sendForgetPasswordResetCode(email)
-        .catch((error) => {
-          return res.status(500).json({ error });
-        });
-
-      return res.status(200).json({
-        message: 'Reset code sent!!!',
-      });
-    } catch (error) {
-      return res.status(500).json({ error: error.message });
-    }
-  };
-
-  sendResetPasswordOTP = async (req, res) => {
-    try {
-      const { email_phone } = req.body;
-      console.log(email_phone);
-
-      if (!email_phone)
-        return res
-          .status(422)
-          .json({ error: 'Wrong format or empty for email' });
-
-      if (!this.utilsService.isEmailRegex(email_phone)) {
-        const phone_number = email_phone;
-
-        await this.userService.sendOTPToVerifyResetPasswordRequest({
-          phone_number,
-        });
-
-        return res.status(201).json({
-          data: { message: 'OTP send successfully!!', otpSent: true },
-        });
-      }
-
-      const email = email_phone;
-      await this.userService.sendOTPToVerifyResetPasswordRequest({ email });
-
-      return res
-        .status(201)
-        .json({ data: { message: 'OTP send successfully', otpSent: true } });
-    } catch (error) {
-      console.error(error);
-      return res.status(500).send({
-        success: false,
-        message: 'Send Otp failed',
       });
     }
   };
@@ -430,7 +414,7 @@ class UserController {
 
   deleteUser = async (req, res) => {
     try {
-      const id = req.jwt_payload?.id;
+      const { id } = req.params;
       const deleteUserResp = await this.userService.delete(id);
       return res.send({
         success: true,
