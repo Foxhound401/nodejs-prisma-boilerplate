@@ -17,23 +17,15 @@ class UserController {
       if (!email_phone || !password)
         return res.status(422).json({ error: 'Invalid username or password' });
 
-      if (!this.utilsService.isEmailRegex(email_phone)) {
-        const phone_number = email_phone;
-        const user = await this.userService.signInWithPhone(
-          phone_number,
-          password
-        );
-        return res.status(201).json({ data: user });
-      }
+      const user = await this.userService.signin(email_phone, password);
 
-      const email = email_phone;
-      const user = await this.userService.signInWithEmail(email, password);
       return res.status(201).json({ data: user });
     } catch (error) {
       console.error(error);
-      return res.status(500).send({
-        success: false,
-        message: error.message,
+      return res.status(error.httpStatus ? error.httpStatus : 500).send({
+        success: error?.success,
+        message: error?.message,
+        errorCode: error?.errorCode,
       });
     }
   };
@@ -116,7 +108,7 @@ class UserController {
 
   verifyOTP = async (req, res) => {
     try {
-      const { id } = req.jwt_payload;
+      const { user_id: id } = req.query;
       const otp = req.body.otp;
 
       const verifyOTPResp = await this.userService.verifyOTP(id, otp);

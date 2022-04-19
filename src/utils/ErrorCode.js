@@ -13,7 +13,6 @@ const HttpStatus = {
 
 const ErrorCode = {
   USER_NON_EXISTED: 'auth001',
-  USER_EXISTED: 'auth009',
   PASSWORD_INVALID: 'auth002',
   PASSWORD_ABOVE_8: 'auth003',
   EMAIL_INVALID: 'auth004',
@@ -21,6 +20,8 @@ const ErrorCode = {
   OTP_INVALID: 'auth006',
   USERNAME_ABOVE_2: 'auth007',
   PASSWORD_SAME_AS_OLD: 'auth008',
+  USER_EXISTED: 'auth009',
+  USER_NON_VERIFIED: 'auth010',
 
   COMMENT_CREATE_FAILED: 'post001',
   REACTION_CREATE_FAILED: 'post002',
