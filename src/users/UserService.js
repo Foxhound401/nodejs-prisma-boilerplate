@@ -81,8 +81,16 @@ class UserService {
     }
   };
 
-  verifyOTP = async (userId, otp) => {
-    const user = await prisma.users.findFirst({ where: { id: userId } });
+  verifyOTP = async (emailPhone, otp) => {
+    const byPhone = this.utilsService.isEmailRegex(emailPhone)
+      ? {
+          email: emailPhone,
+        }
+      : {
+          phone_number: emailPhone,
+        };
+
+    const user = await prisma.users.findFirst({ where: { ...byPhone } });
     if (!user) throw new Error('user not found');
 
     if (user.phone_number) {

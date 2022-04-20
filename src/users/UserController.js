@@ -110,9 +110,9 @@ class UserController {
 
   verifyOTP = async (req, res) => {
     try {
-      const { user_id: id, otp } = req.body;
+      const { email_phone, otp } = req.body;
 
-      const verifyOTPResp = await this.userService.verifyOTP(id, otp);
+      const verifyOTPResp = await this.userService.verifyOTP(email_phone, otp);
 
       if (!verifyOTPResp)
         return res.status(500).send({
