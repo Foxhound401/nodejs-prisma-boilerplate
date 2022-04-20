@@ -82,10 +82,8 @@ class UserController {
 
   getUserInfo = async (req, res) => {
     try {
-      const { id: userId } = req.body;
-      const user = await this.userService.findFirst({
-        id: userId,
-      });
+      const { id } = req.jwt_payload;
+      const user = await this.userService.findFirst({ id });
 
       if (!user) {
         return res.status(404).send({

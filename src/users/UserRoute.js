@@ -13,7 +13,7 @@ const userController = new UserController();
 
 router.post('/sign-in', validator(UserSchema.signIn), userController.signIn);
 router.post('/sign-up', validator(UserSchema.signUp), userController.signUp);
-router.get('/get-user-info', userController.getUserInfo);
+router.get('/get-user-info', validateJWT, userController.getUserInfo);
 router.get('/profile', validateJWT, userController.getCurrentUser);
 router.put('/', validateJWT, userController.updateUserProfile);
 
