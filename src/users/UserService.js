@@ -6,10 +6,15 @@ const mailService = require('../email/EmailService');
 const socialService = require('../social/SocialService');
 const { ErrorCode, HttpStatus } = require('../utils/ErrorCode');
 
+function getKeyByValue(object, value) {
+  return Object.keys(object).find((key) => object[key] === value);
+}
+
 function UserError(httpStatus, errorCode, message) {
   this.success = false;
   this.httpStatus = httpStatus;
   this.errorCode = errorCode;
+  this.errorKey = getKeyByValue(ErrorCode, errorCode);
   this.message = message;
 }
 
@@ -97,9 +102,11 @@ class UserService {
     if (user.otp_code !== otp)
       throw new Error('OTP mismatch, verification failed');
 
+    const token = await this.generateToken(existed);
     return this.update(user.id, {
       otp_code: otp,
       is_verify: true,
+      token: token,
     });
   };
 
