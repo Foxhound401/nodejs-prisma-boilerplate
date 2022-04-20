@@ -82,9 +82,7 @@ class UserService {
   };
 
   verifyOTP = async (userId, otp) => {
-    console.log(userId, otp);
     const user = await prisma.users.findFirst({ where: { id: userId } });
-    console.log(user);
     if (!user) throw new Error('user not found');
 
     if (user.phone_number) {
@@ -102,7 +100,7 @@ class UserService {
     if (user.otp_code !== otp)
       throw new Error('OTP mismatch, verification failed');
 
-    const token = await this.generateToken(existed);
+    const token = await this.generateToken(user);
     return this.update(user.id, {
       otp_code: otp,
       is_verify: true,

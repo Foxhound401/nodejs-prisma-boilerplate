@@ -30,7 +30,7 @@ router.post(
   userController.updateUserCover
 );
 
-router.get('/resend-otp', validateJWT, userController.resendOTP);
+router.get('/resend-otp/:id', userController.resendOTP);
 router.post('/verify-otp', userController.verifyOTP);
 
 router.post(
