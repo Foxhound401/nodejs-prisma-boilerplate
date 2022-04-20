@@ -4,7 +4,7 @@ const baseUrl = process.env.SOCIAL_URL;
 
 const instance = axios.create({
   baseURL: baseUrl,
-  timeout: 3000,
+  timeout: 30000,
   validateStatus: (status) => status < 400,
 });
 
