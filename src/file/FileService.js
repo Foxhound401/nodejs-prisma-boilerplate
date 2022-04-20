@@ -36,7 +36,7 @@ class FileService {
 
   uploadUserCover = async (userId, file) => {
     const schema = 'sso';
-    const fileResp = await this.fileRepository.uploadAvatarCover(file, schema);
+    const fileResp = await this.fileRepository.uploadAvatarImage(file, schema);
     const fileData = {
       url: fileResp.Location,
     };
