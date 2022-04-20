@@ -23,6 +23,7 @@ router.post(
   validateJWT,
   userController.updateUserAvatar
 );
+
 router.post(
   '/:id/cover/upload',
   upload.single('file'),

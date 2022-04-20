@@ -138,29 +138,24 @@ class UserController {
 
   resendOTP = async (req, res) => {
     try {
-      const email = req.jwt_payload?.email;
-      const phone_number = req.jwt_payload?.phone_number;
+      const { id } = req.params;
 
-      if (!email && !phone_number)
-        return res
-          .status(422)
-          .json({ error: 'Wrong format or empty email/phone' });
+      console.log('UserController: ResendOTP: ', id);
+      const user = await this.userService.findFirst(id);
 
-      if (phone_number) {
-        const user = await this.userService.findFirst({ phone_number });
-        if (!user) return res.status(404).json({ error: 'User Not Found!' });
-        await sendOtp(phone_number);
-        await this.userService.update(user.id, {
-          is_verify: false,
-          otp_code: '',
+      if (!user) {
+        return res.status(404).send({
+          status: false,
+          message: 'User Not Found',
         });
-
-        return res
-          .status(201)
-          .json({ data: { message: 'Successfully resend OTP!' } });
       }
 
-      await this.userService.sendOTPEmail(email);
+      if (user.email) {
+        await this.userService.sendOTP(user.email);
+      } else {
+        await this.userService.sendOTP(user.phone_number);
+      }
+
       return res
         .status(201)
         .json({ data: { message: 'Successfully resend OTP!' } });
