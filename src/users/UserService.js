@@ -77,7 +77,9 @@ class UserService {
   };
 
   verifyOTP = async (userId, otp) => {
+    console.log(userId, otp);
     const user = await prisma.users.findFirst({ where: { id: userId } });
+    console.log(user);
     if (!user) throw new Error('user not found');
 
     if (user.phone_number) {
@@ -169,13 +171,12 @@ class UserService {
 
   signup = async (user) => {
     const { email_phone, password, username } = user;
-    const isEmail = this.utilsService.isEmailRegex(email_phone);
-    const byPhone = isEmail
+    const byPhone = this.utilsService.isEmailRegex(user.email_phone)
       ? {
-          email: email_phone,
+          email: user.email_phone,
         }
       : {
-          phone_number: email_phone,
+          phone_number: user.email_phone,
         };
 
     const existed = await prisma.users.findFirst({
@@ -194,17 +195,27 @@ class UserService {
     const createdUser = await prisma.users.create({
       data: {
         ...byPhone,
-        username: username,
-        password: password,
+        username: user.username,
+        password: user.password,
         account_type: 'default',
         is_verify: false,
         is_admin: false,
       },
       select: {
         id: true,
-        email: true,
         username: true,
+        email: true,
+        phone_number: true,
+        avatar: true,
+        cover: true,
         account_type: true,
+        first_name: true,
+        last_name: true,
+        created_at: true,
+        updated_at: true,
+        birthday: true,
+        is_admin: true,
+        profile_src: true,
         is_verify: true,
       },
     });
@@ -227,12 +238,7 @@ class UserService {
       throw new Error('Failed to create user social!');
     }
 
-    if (!isEmail) {
-      await twilioService.sendOtp(email_phone);
-      return updateToken;
-    }
-
-    await this.sendOTPEmail(email_phone);
+    await this.sendOTP(email_phone);
 
     return createdUser;
   };

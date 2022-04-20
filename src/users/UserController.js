@@ -80,7 +80,7 @@ class UserController {
 
   getUserInfo = async (req, res) => {
     try {
-      const userId = req.jwt_payload?.id;
+      const { id: userId } = req.body;
       const user = await this.userService.findFirst({
         id: userId,
       });
@@ -108,8 +108,7 @@ class UserController {
 
   verifyOTP = async (req, res) => {
     try {
-      const { user_id: id } = req.query;
-      const otp = req.body.otp;
+      const { user_id: id, otp } = req.body;
 
       const verifyOTPResp = await this.userService.verifyOTP(id, otp);
 
