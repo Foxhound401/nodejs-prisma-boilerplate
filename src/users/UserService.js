@@ -91,9 +91,11 @@ class UserService {
       if (verifiedOTP.status !== 'approved' || !verifiedOTP.valid)
         throw new Error('OTP invalid, please try again');
 
+      const token = await this.generateToken(user);
       return this.update(user.id, {
         otp_code: otp,
         is_verify: true,
+        token: token,
       });
     }
 
