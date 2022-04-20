@@ -138,10 +138,12 @@ class UserController {
 
   resendOTP = async (req, res) => {
     try {
-      const { id } = req.params;
+      const { user_id: id } = req.body;
 
       console.log('UserController: ResendOTP: ', id);
-      const user = await this.userService.findFirst(id);
+      const user = await this.userService.findFirst({ id });
+
+      console.log(user);
 
       if (!user) {
         return res.status(404).send({
