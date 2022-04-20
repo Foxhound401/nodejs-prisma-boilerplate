@@ -42,7 +42,9 @@ const updateUserAvatar = async (system_user_id, avatar) => {
       method: 'PUT',
       data: {
         system_user_id,
-        avatar,
+        data: {
+          ...avatar,
+        },
       },
     });
 
@@ -59,7 +61,9 @@ const updateUserCover = async (system_user_id, cover) => {
       method: 'PUT',
       data: {
         system_user_id,
-        cover,
+        data: {
+          ...cover,
+        },
       },
     });
 
