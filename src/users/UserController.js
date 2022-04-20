@@ -26,6 +26,7 @@ class UserController {
         success: error?.success,
         message: error?.message,
         errorCode: error?.errorCode,
+        errorKey: error?.errorKey,
       });
     }
   };
@@ -74,6 +75,7 @@ class UserController {
         success: error?.success,
         message: error?.message,
         errorCode: error?.errorCode,
+        errorKey: error?.errorKey,
       });
     }
   };
