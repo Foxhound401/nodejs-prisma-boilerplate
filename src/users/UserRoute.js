@@ -16,7 +16,7 @@ router.post('/sign-up', validator(UserSchema.signUp), userController.signUp);
 // After signup OTP flow should be applied
 // that is:
 // signup -> SendOTP -> VerifyOTP/ResendOTP ->
-router.get('/get-user-info', validateJWT, userController.getUserInfo);
+router.get('/get-user-info', userController.getUserInfo);
 router.get('/profile', validateJWT, userController.getCurrentUser);
 router.put('/', validateJWT, userController.updateUserProfile);
 

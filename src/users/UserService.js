@@ -77,7 +77,9 @@ class UserService {
   };
 
   verifyOTP = async (userId, otp) => {
+    console.log(userId, otp);
     const user = await prisma.users.findFirst({ where: { id: userId } });
+    console.log(user);
     if (!user) throw new Error('user not found');
 
     if (user.phone_number) {
@@ -202,9 +204,19 @@ class UserService {
       },
       select: {
         id: true,
-        email: true,
         username: true,
+        email: true,
+        phone_number: true,
+        avatar: true,
+        cover: true,
         account_type: true,
+        first_name: true,
+        last_name: true,
+        created_at: true,
+        updated_at: true,
+        birthday: true,
+        is_admin: true,
+        profile_src: true,
         is_verify: true,
       },
     });
