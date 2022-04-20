@@ -175,7 +175,6 @@ class UserService {
   };
 
   signup = async (user) => {
-    const { email_phone, password, username } = user;
     const byPhone = this.utilsService.isEmailRegex(user.email_phone)
       ? {
           email: user.email_phone,
@@ -243,7 +242,7 @@ class UserService {
       throw new Error('Failed to create user social!');
     }
 
-    await this.sendOTP(email_phone);
+    await this.sendOTP(user.email_phone);
 
     return createdUser;
   };
@@ -269,7 +268,7 @@ class UserService {
 
   sendOTP = async (emailPhone) => {
     if (!this.utilsService.isEmailRegex(emailPhone))
-      return twilioService.sendOtp(email_phone);
+      return twilioService.sendOtp(emailPhone);
 
     return this.sendOTPEmail(emailPhone);
   };
