@@ -105,13 +105,9 @@ class UserController {
     try {
       const {
         idToken,
-        user: { email, name, photo, familyName, givenName },
+        user: { email, name, photo, familyName, givenName, id: google_user_id },
       } = req.body;
 
-      if (!email)
-        return res
-          .status(422)
-          .json({ error: 'Wrong format or empty for email' });
       if (!idToken)
         return res
           .status(422)
@@ -119,11 +115,12 @@ class UserController {
 
       console.log(idToken, email, name, photo, familyName, givenName);
       const createUserResp = await this.userService.authGoogle({
-        email,
+        email: email,
         username: name,
         avatar: photo,
         lastname: familyName,
         firstname: givenName,
+        google_user_id: google_user_id,
       });
 
       if (!createUserResp)
@@ -159,11 +156,6 @@ class UserController {
         imageURL: avatar,
       } = req.body;
 
-      if (!email)
-        return res
-          .status(422)
-          .json({ error: 'Wrong format or empty for email' });
-
       if (!userID)
         return res
           .status(422)
@@ -175,6 +167,7 @@ class UserController {
         avatar,
         lastname,
         firstname,
+        facebook_user_id: userID,
       });
 
       if (!createUserResp)

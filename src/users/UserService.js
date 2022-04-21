@@ -506,7 +506,14 @@ class UserService {
 
   authGoogle = async (user) => {
     // TODO: merge account update is_verify
-    const searchUser = await this.findFirst({ email: user.email });
+    const byEmail = user.email
+      ? {
+          email: user.email,
+        }
+      : {
+          google_user_id: user.google_user_id,
+        };
+    const searchUser = await this.findFirst(byEmail);
 
     if (searchUser) {
       searchUser.avatar = user.avatar;
@@ -525,17 +532,19 @@ class UserService {
         token: token,
         is_verify: true,
         account_type: 'default',
+        google_user_id: user.google_user_id,
       });
     }
 
     const createUserDto = {
-      email: user.email,
+      email: user.email ? user.email : '',
       username: user.username,
       avatar: user.avatar,
       last_name: user.lastname,
       first_name: user.firstname,
       is_verify: true,
       account_type: 'default',
+      google_user_id: user.google_user_id,
     };
 
     const token = await this.generateToken(createUserDto);
@@ -565,7 +574,14 @@ class UserService {
 
   authFacebook = async (user) => {
     // TODO: merge account update is_verify
-    const searchUser = await this.findFirst({ email: user.email });
+    const byEmail = user.email
+      ? {
+          email: user.email,
+        }
+      : {
+          facebook_user_id: user.facebook_user_id,
+        };
+    const searchUser = await this.findFirst(byEmail);
 
     if (searchUser) {
       searchUser.avatar = user.avatar;
@@ -584,17 +600,19 @@ class UserService {
         token: token,
         is_verify: true,
         account_type: 'default',
+        facebook_user_id: user.facebook_user_id,
       });
     }
 
     const createUserDto = {
-      email: user.email,
+      email: user.email ? user.email : '',
       username: user.username,
       avatar: user.avatar,
       last_name: user.lastname,
       first_name: user.firstname,
       is_verify: true,
       account_type: 'default',
+      facebook_user_id: user.facebook_user_id,
     };
 
     const token = await this.generateToken(createUserDto);
