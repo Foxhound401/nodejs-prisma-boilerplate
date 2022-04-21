@@ -130,28 +130,31 @@ class UserController {
   authFacebook = async (req, res) => {
     try {
       const {
-        idToken,
-        user: { email, name, avatar, familyName, givenName },
+        email,
+        userID,
+        name: username,
+        firstname,
+        lastname,
+        imageURL: avatar,
       } = req.body;
 
       if (!email)
         return res
           .status(422)
           .json({ error: 'Wrong format or empty for email' });
-      if (!idToken)
+
+      if (!userID)
         return res
           .status(422)
-          .json({ error: 'Wrong format or empty for password' });
+          .json({ error: 'Wrong format or empty for email' });
 
-      console.log(idToken, email, name, avatar, familyName, givenName);
-      const createUserResp = [];
-      // const createUserResp = await this.userService.signupGoogle({
-      //   email,
-      //   username: name,
-      //   avatar,
-      //   lastname: familyName,
-      //   firstname: givenName,
-      // });
+      const createUserResp = await this.userService.authFacebook({
+        email,
+        username,
+        avatar,
+        lastname,
+        firstname,
+      });
 
       if (!createUserResp)
         return res.status(500).send({
