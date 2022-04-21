@@ -184,6 +184,40 @@ class UserService {
     return this.update(existed.id, { token });
   };
 
+  signinAdmin = async (email, password) => {
+    const existed = await prisma.users.findFirst({
+      where: {
+        email,
+      },
+    });
+
+    if (!existed)
+      throw new UserError(
+        HttpStatus.BAD_REQUEST,
+        ErrorCode.USER_NON_EXISTED,
+        'User Not Existed!'
+      );
+
+    if (!this.validPassword(password, existed.password))
+      throw new UserError(
+        HttpStatus.BAD_REQUEST,
+        ErrorCode.PASSWORD_INVALID,
+        'Password Invalid!'
+      );
+
+    // if (!existed.is_verify && !existed.account_type === 'admin') {
+    //   await this.sendOTP(email);
+    //   throw new UserError(
+    //     HttpStatus.UNAUTHORIZED,
+    //     ErrorCode.USER_NON_VERIFIED,
+    //     'User Not Yet Verified!'
+    //   );
+    // }
+
+    const token = await this.generateToken(existed);
+    return this.update(existed.id, { token });
+  };
+
   signup = async (user) => {
     const byPhone = this.utilsService.isEmailRegex(user.email_phone)
       ? {

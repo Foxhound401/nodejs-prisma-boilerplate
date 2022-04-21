@@ -31,6 +31,27 @@ class UserController {
     }
   };
 
+  signInAdmin = async (req, res) => {
+    try {
+      const { email, password } = req.body;
+
+      if (!email || !password)
+        return res.status(422).json({ error: 'Invalid username or password' });
+
+      const user = await this.userService.signinAdmin(email, password);
+
+      return res.status(201).json({ data: user });
+    } catch (error) {
+      console.error(error);
+      return res.status(error.httpStatus ? error.httpStatus : 500).send({
+        success: error?.success,
+        message: error?.message,
+        errorCode: error?.errorCode,
+        errorKey: error?.errorKey,
+      });
+    }
+  };
+
   signUp = async (req, res) => {
     try {
       const { email_phone, password, username } = req.body;
