@@ -13,6 +13,8 @@ const userController = new UserController();
 
 router.post('/sign-in', validator(UserSchema.signIn), userController.signIn);
 router.post('/sign-up', validator(UserSchema.signUp), userController.signUp);
+router.post('/google/auth', userController.authGoogle);
+router.post('/facebook/auth', userController.authFacebook);
 router.get('/get-user-info', validateJWT, userController.getUserInfo);
 router.get('/profile', validateJWT, userController.getCurrentUser);
 router.put('/', validateJWT, userController.updateUserProfile);

@@ -1,0 +1,17 @@
+{
+  "idToken": "eyJhbGciOiJSUzI1NiIsImtpZCI6ImQzMzJhYjU0NWNjMTg5ZGYxMzNlZmRkYjNhNmM0MDJlYmY0ODlhYzIiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20iLCJhenAiOiI3OTU1NzM4NzcwMzctazVpdjNsdWcxY2ZsY2gyMzZoZDIwNXIwYzZjNnNmbmwuYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLCJhdWQiOiI3OTU1NzM4NzcwMzctazVpdjNsdWcxY2ZsY2gyMzZoZDIwNXIwYzZjNnNmbmwuYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLCJzdWIiOiIxMTc1NjI2MDk2ODU1Njg5MzEwMDUiLCJoZCI6ImVhc3RwbGF5ZXJzLmlvIiwiZW1haWwiOiJkZXZAZWFzdHBsYXllcnMuaW8iLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwiYXRfaGFzaCI6InRXbmFxS0twbjBXSFl5Q0lEWm55MGciLCJub25jZSI6ImFILTBWSFYycWRLSDZXZVAzTjRsQVRQVFhVMFB6bW5ZalNBeDNRd2ZXY2MiLCJuYW1lIjoiRWFzdHBsYXllcnMgRGV2IiwicGljdHVyZSI6Imh0dHBzOi8vbGgzLmdvb2dsZXVzZXJjb250ZW50LmNvbS9hLS9BT2gxNEdnYkd4QktEMkJRQlRNcXYtT2M1c0tuT0x4cHVObnhtOGo4M0hpaT1zOTYtYyIsImdpdmVuX25hbWUiOiJFYXN0cGxheWVycyIsImZhbWlseV9uYW1lIjoiRGV2IiwibG9jYWxlIjoiZW4iLCJpYXQiOjE2NTA1MzM4ODUsImV4cCI6MTY1MDUzNzQ4NX0.YllTgH5zpDWihMPDTcgwDfgyS8iWmG1I1w9IfC0GnpaEdeODcLOKlO8xk9jkvM_LPTmbYpMTPdqjnypyRluPuas7ueJLxbfCIrsDm_Xw0kbTt_V3Rszk_6UA0AYx19vFa2rcPvOMxShT5I5Gc0ddcPf2GQGRwfS9WJG4SacyEUC-cetd_2LmNG4MNMD-qNwSB8MVaSegGX8YFz3QKk1k1kZeC6ft5b-8O_wY-u8G8rjVdRCRH_F16K48v5GYd49okPyJEFl7pmrwpoCUQaYlyfel-ejEOcIX9OXduEFrW6b2ufCNHRT2IBZIl5KSVSlI7jJdQUHJPqkb2zyko6RAzA",
+  "scopes": [
+    "https://www.googleapis.com/auth/userinfo.email",
+    "https://www.googleapis.com/auth/userinfo.profile",
+    "openid"
+  ],
+  "serverAuthCode": null,
+  "user": {
+    "email": "dev@eastplayers.io",
+    "familyName": "Dev",
+    "givenName": "Eastplayers",
+    "id": "117562609685568931005",
+    "name": "Eastplayers Dev",
+    "photo": "https://lh3.googleusercontent.com/a-/AOh14GgbGxBKD2BQBTMqv-Oc5sKnOLxpuNnxm8j83Hii=s120"
+  }
+}

@@ -80,6 +80,101 @@ class UserController {
     }
   };
 
+  authGoogle = async (req, res) => {
+    try {
+      const {
+        idToken,
+        user: { email, name, photo, familyName, givenName },
+      } = req.body;
+
+      if (!email)
+        return res
+          .status(422)
+          .json({ error: 'Wrong format or empty for email' });
+      if (!idToken)
+        return res
+          .status(422)
+          .json({ error: 'Wrong format or empty for password' });
+
+      console.log(idToken, email, name, photo, familyName, givenName);
+      const createUserResp = await this.userService.authGoogle({
+        email,
+        username: name,
+        avatar: photo,
+        lastname: familyName,
+        firstname: givenName,
+      });
+
+      if (!createUserResp)
+        return res.status(500).send({
+          success: false,
+          message: 'Create User failed',
+        });
+
+      return res.status(201).send({
+        success: true,
+        message: 'Success',
+        data: createUserResp,
+      });
+    } catch (error) {
+      console.error(error);
+      return res.status(error.httpStatus ? error.httpStatus : 500).send({
+        success: error?.success,
+        message: error?.message,
+        errorCode: error?.errorCode,
+        errorKey: error?.errorKey,
+      });
+    }
+  };
+
+  authFacebook = async (req, res) => {
+    try {
+      const {
+        idToken,
+        user: { email, name, avatar, familyName, givenName },
+      } = req.body;
+
+      if (!email)
+        return res
+          .status(422)
+          .json({ error: 'Wrong format or empty for email' });
+      if (!idToken)
+        return res
+          .status(422)
+          .json({ error: 'Wrong format or empty for password' });
+
+      console.log(idToken, email, name, avatar, familyName, givenName);
+      const createUserResp = [];
+      // const createUserResp = await this.userService.signupGoogle({
+      //   email,
+      //   username: name,
+      //   avatar,
+      //   lastname: familyName,
+      //   firstname: givenName,
+      // });
+
+      if (!createUserResp)
+        return res.status(500).send({
+          success: false,
+          message: 'Create User failed',
+        });
+
+      return res.status(201).send({
+        success: true,
+        message: 'Success',
+        data: createUserResp,
+      });
+    } catch (error) {
+      console.error(error);
+      return res.status(error.httpStatus ? error.httpStatus : 500).send({
+        success: error?.success,
+        message: error?.message,
+        errorCode: error?.errorCode,
+        errorKey: error?.errorKey,
+      });
+    }
+  };
+
   getUserInfo = async (req, res) => {
     try {
       const { id } = req.jwt_payload;

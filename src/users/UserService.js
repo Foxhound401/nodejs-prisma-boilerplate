@@ -469,6 +469,65 @@ class UserService {
 
     return userSearch.filter((user) => user.id !== currentUser.id);
   };
+
+  authGoogle = async (user) => {
+    // TODO: merge account update is_verify
+    const searchUser = await this.findFirst({ email: user.email });
+
+    if (searchUser) {
+      searchUser.avatar = user.avatar;
+      searchUser.username = user.username;
+      searchUser.last_name = user.last_name;
+      searchUser.first_name = user.first_name;
+      searchUser.is_verify = true;
+      searchUser.account_type = 'default';
+      const token = await this.generateToken(searchUser);
+
+      return this.update(searchUser.id, {
+        username: user.username,
+        avatar: user.avatar,
+        last_name: user.lastname,
+        first_name: user.firstname,
+        token: token,
+        is_verify: true,
+        account_type: 'default',
+      });
+    }
+
+    const createUserDto = {
+      email: user.email,
+      username: user.username,
+      avatar: user.avatar,
+      last_name: user.lastname,
+      first_name: user.firstname,
+      is_verify: true,
+      account_type: 'default',
+    };
+
+    const token = await this.generateToken(createUserDto);
+    createUserDto.token = token;
+    return prisma.users.create({
+      data: createUserDto,
+      select: {
+        id: true,
+        username: true,
+        email: true,
+        phone_number: true,
+        avatar: true,
+        cover: true,
+        account_type: true,
+        first_name: true,
+        last_name: true,
+        created_at: true,
+        updated_at: true,
+        birthday: true,
+        is_admin: true,
+        profile_src: true,
+        is_verify: true,
+        token: true,
+      },
+    });
+  };
 }
 
 module.exports = UserService;
