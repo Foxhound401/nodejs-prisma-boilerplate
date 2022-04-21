@@ -108,7 +108,7 @@ class UserController {
         user: { email, name, photo, familyName, givenName, id: google_user_id },
       } = req.body;
 
-      if (!idToken)
+      if (!google_user_id)
         return res
           .status(422)
           .json({ error: 'Wrong format or empty for password' });
