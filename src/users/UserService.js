@@ -524,6 +524,7 @@ class UserService {
       searchUser.account_type = 'default';
       const token = await this.generateToken(searchUser);
 
+      // FIXME: when merge every setting before will be delete
       return this.update(searchUser.id, {
         username: user.username,
         avatar: user.avatar,
@@ -549,7 +550,7 @@ class UserService {
 
     const token = await this.generateToken(createUserDto);
     createUserDto.token = token;
-    return prisma.users.create({
+    const createdUser = await prisma.users.create({
       data: createUserDto,
       select: {
         id: true,
@@ -570,6 +571,24 @@ class UserService {
         token: true,
       },
     });
+
+    // TODO: implement Observer to relay user
+    // This should have observer pattern so that multiple services can
+    // subscribe to it and sync the user
+    const userSocial = await socialService.createUser(createdUser);
+
+    if (!userSocial) {
+      await prisma.users.delete({
+        where: { id: createdUser.id },
+      });
+
+      await socialService.deleteUser(createdUser.id);
+
+      // console.error('UserService - failed to create social user', social);
+      throw new Error('Failed to create user social!');
+    }
+
+    return createdUser;
   };
 
   authFacebook = async (user) => {
@@ -618,7 +637,7 @@ class UserService {
     const token = await this.generateToken(createUserDto);
     createUserDto.token = token;
 
-    return prisma.users.create({
+    const createdUser = await prisma.users.create({
       data: createUserDto,
       select: {
         id: true,
@@ -639,6 +658,23 @@ class UserService {
         token: true,
       },
     });
+
+    // TODO: implement Observer to relay user
+    // This should have observer pattern so that multiple services can
+    // subscribe to it and sync the user
+    const userSocial = await socialService.createUser(createdUser);
+
+    if (!userSocial) {
+      await prisma.users.delete({
+        where: { id: createdUser.id },
+      });
+
+      await socialService.deleteUser(createdUser.id);
+
+      throw new Error('Failed to create user social!');
+    }
+
+    return createdUser;
   };
 }
 

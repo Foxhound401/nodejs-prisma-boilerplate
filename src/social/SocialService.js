@@ -3,6 +3,7 @@ const Api = require('../utils/axios');
 
 const createUser = async (user) => {
   try {
+    console.log(user)
     const res = await Api({
       url: '/users',
       data: {
@@ -11,7 +12,7 @@ const createUser = async (user) => {
         system_user_id: user.id,
       },
     });
-    console.log(res);
+    // console.log(res);
 
     return res;
   } catch (error) {
