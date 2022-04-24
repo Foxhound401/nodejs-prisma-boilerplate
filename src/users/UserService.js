@@ -91,13 +91,24 @@ class UserService {
         };
 
     const user = await prisma.users.findFirst({ where: { ...byPhone } });
-    if (!user) throw new Error('user not found');
+    if (!user) {
+      throw new UserError(
+        HttpStatus.NOT_FOUND,
+        ErrorCode.USER_NON_EXISTED,
+        "Can't find user for sending otp"
+      );
+    }
 
     if (user.phone_number) {
       const verifiedOTP = await twilioService.verifyOtp(user.phone_number, otp);
 
-      if (verifiedOTP.status !== 'approved' || !verifiedOTP.valid)
-        throw new Error('OTP invalid, please try again');
+      if (verifiedOTP.status !== 'approved' || !verifiedOTP.valid) {
+        throw new UserError(
+          HttpStatus.BAD_REQUEST,
+          ErrorCode.OTP_INVALID,
+          'OTP verification failed, Invalid OTP'
+        );
+      }
 
       const token = await this.generateToken(user);
       return this.update(user.id, {
@@ -107,8 +118,13 @@ class UserService {
       });
     }
 
-    if (user.otp_code !== otp)
-      throw new Error('OTP mismatch, verification failed');
+    if (user.otp_code !== otp) {
+      throw new UserError(
+        HttpStatus.BAD_REQUEST,
+        ErrorCode.OTP_INVALID,
+        'OTP verification failed, Invalid OTP'
+      );
+    }
 
     const token = await this.generateToken(user);
     return this.update(user.id, {
@@ -204,15 +220,6 @@ class UserService {
         ErrorCode.PASSWORD_INVALID,
         'Password Invalid!'
       );
-
-    // if (!existed.is_verify && !existed.account_type === 'admin') {
-    //   await this.sendOTP(email);
-    //   throw new UserError(
-    //     HttpStatus.UNAUTHORIZED,
-    //     ErrorCode.USER_NON_VERIFIED,
-    //     'User Not Yet Verified!'
-    //   );
-    // }
 
     const token = await this.generateToken(existed);
     return this.update(existed.id, { token });
@@ -317,6 +324,27 @@ class UserService {
     return this.sendOTPEmail(emailPhone);
   };
 
+  resetOTP = async (emailPhone) => {
+    const byPhone = emailPhone.phone_number
+      ? {
+          phone_number: emailPhone.phone_number,
+        }
+      : {
+          email: emailPhone.email,
+        };
+    const user = this.findFirst({
+      ...byPhone,
+    });
+
+    if (!user) {
+      throw new UserError(
+        HttpStatus.BAD_REQUEST,
+        ErrorCode.USER_EXISTED,
+        'User Not Found, Invalid credentials to resend OTP'
+      );
+    }
+  };
+
   sendOTPEmail = async (email) => {
     const user = await prisma.users.findFirst({
       where: { email: email },
@@ -376,9 +404,7 @@ class UserService {
           email: emailOrPhone.email,
         };
     const user = this.findFirst({
-      where: {
-        ...byPhone,
-      },
+      ...byPhone,
     });
 
     if (!user) throw new Error('User not found!');

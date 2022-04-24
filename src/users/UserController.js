@@ -1,7 +1,6 @@
 const UserService = require('./UserService');
 const UtilsService = require('../utils/UtilsService');
 const FileService = require('../file/FileService');
-const { sendOtp, verifyOtp } = require('../otp/OTPService');
 
 class UserController {
   constructor() {
@@ -221,6 +220,14 @@ class UserController {
   verifyOTP = async (req, res) => {
     try {
       const { email_phone, otp } = req.body;
+      if (!email_phone)
+        return res
+          .status(422)
+          .send({ success: false, message: 'Email or PhoneNumber is empty' });
+      if (!otp)
+        return res
+          .status(422)
+          .send({ success: false, message: 'OTP is empty' });
 
       const verifyOTPResp = await this.userService.verifyOTP(email_phone, otp);
 
@@ -239,40 +246,34 @@ class UserController {
       });
     } catch (error) {
       console.error(error);
-      return res.send({
-        success: false,
-        message: 'Not available, Please Try again later',
+      return res.status(error.httpStatus ? error.httpStatus : 500).send({
+        success: error?.success,
+        message: error?.message,
+        errorCode: error?.errorCode,
+        errorKey: error?.errorKey,
       });
     }
   };
 
   resendOTP = async (req, res) => {
     try {
-      const { user_id: id } = req.body;
+      const { email_phone } = req.body;
 
-      console.log('UserController: ResendOTP: ', id);
-      const user = await this.userService.findFirst({ id });
+      if (!email_phone)
+        return res
+          .status(422)
+          .send({ success: false, message: 'Email or PhoneNumber is empty' });
 
-      console.log(user);
-
-      if (!user) {
-        return res.status(404).send({
-          status: false,
-          message: 'User Not Found',
-        });
-      }
-
-      if (user.email) {
-        await this.userService.sendOTP(user.email);
-      } else {
-        await this.userService.sendOTP(user.phone_number);
-      }
+      await this.userService.resendOTP(email_phone);
 
       return res
         .status(201)
         .json({ data: { message: 'Successfully resend OTP!' } });
     } catch (error) {
-      throw error;
+      return res.status(error.httpStatus ? error.httpStatus : 500).send({
+        success: false,
+        message: 'Failed to resend OTP',
+      });
     }
   };
 
