@@ -5,7 +5,7 @@ const twilio = require('twilio');
 const twilioConfig = {
   accountSid: process.env.TWILIO_ACCOUNT_SID,
   authToken: process.env.TWILIO_AUTH_TOKEN,
-  serviceSid: 'VA9eba185f78e071899b621031264fa8f5',
+  serviceSid: process.env.TWILIO_AUTH_VA,
 };
 
 const client = new twilio(twilioConfig.accountSid, twilioConfig.authToken);
