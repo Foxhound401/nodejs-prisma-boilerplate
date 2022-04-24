@@ -336,6 +336,8 @@ class UserService {
       ...byPhone,
     });
 
+    console.log('-----------RESETOTP: ', user);
+
     if (!user) {
       throw new UserError(
         HttpStatus.BAD_REQUEST,
@@ -409,11 +411,7 @@ class UserService {
 
     if (!user) throw new Error('User not found!');
 
-    if (user.phone_number) {
-      twilioService.sendOtp(user.phone_number);
-    } else {
-      this.sendOTPEmail(user.email);
-    }
+    this.sendOTP(emailOrPhone);
 
     return;
   };
