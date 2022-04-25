@@ -331,31 +331,18 @@ class UserController {
           .status(422)
           .json({ error: 'Wrong format or empty email/phone' });
 
-      if (!this.utilsService.isEmailRegex(email_phone)) {
-        const phone_number = email_phone;
-
-        await this.userService.resendOTPForResetPasswordRequest({
-          phone_number,
-        });
-
-        return res
-          .status(201)
-          .json({ data: { message: 'Successfully resend OTP!' } });
-      }
-
-      const email = email_phone;
-      await this.userService.resendOTPForResetPasswordRequest({
-        email,
-      });
+      await this.userService.resendOTPForResetPasswordRequest(email_phone);
 
       return res
         .status(201)
         .json({ data: { message: 'Successfully resend OTP!' } });
     } catch (error) {
       console.error(error);
-      return res.send({
-        success: false,
-        message: 'Unavailable please try again later',
+      return res.status(error.httpStatus ? error.httpStatus : 500).send({
+        success: error?.success,
+        message: error?.message,
+        errorCode: error?.errorCode,
+        errorKey: error?.errorKey,
       });
     }
   };

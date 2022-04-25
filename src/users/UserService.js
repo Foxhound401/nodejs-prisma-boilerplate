@@ -325,12 +325,12 @@ class UserService {
   };
 
   resendOTP = async (emailPhone) => {
-    const byPhone = emailPhone.phone_number
+    const byPhone = this.utilsService.isEmailRegex(emailPhone)
       ? {
-          phone_number: emailPhone.phone_number,
+          email: user.email_phone,
         }
       : {
-          email: emailPhone.email,
+          phone_number: user.email_phone,
         };
     const user = await this.findFirst({
       ...byPhone,
@@ -374,12 +374,12 @@ class UserService {
   };
 
   sendOTPToVerifyResetPasswordRequest = async (emailOrPhone) => {
-    const byPhone = emailOrPhone.phone_number
+    const byPhone = this.utilsService.isEmailRegex(emailOrPhone)
       ? {
-          phone_number: emailOrPhone.phone_number,
+          email: user.email_phone,
         }
       : {
-          email: emailOrPhone.email,
+          phone_number: user.email_phone,
         };
 
     const user = await prisma.users.findFirst({
@@ -402,12 +402,12 @@ class UserService {
   };
 
   resendOTPForResetPasswordRequest = async (emailOrPhone) => {
-    const byPhone = emailOrPhone.phone_number
+    const byPhone = this.utilsService.isEmailRegex(emailOrPhone)
       ? {
-          phone_number: emailOrPhone.phone_number,
+          email: user.email_phone,
         }
       : {
-          email: emailOrPhone.email,
+          phone_number: user.email_phone,
         };
     const user = this.findFirst({
       ...byPhone,
