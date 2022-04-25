@@ -572,8 +572,6 @@ class UserService {
       google_user_id: user.google_user_id,
     };
 
-    const token = await this.generateToken(createUserDto);
-    createUserDto.token = token;
     const createdUser = await prisma.users.create({
       data: createUserDto,
       select: {
@@ -612,7 +610,12 @@ class UserService {
       throw new Error('Failed to create user social!');
     }
 
-    return createdUser;
+    console.log('AUTH GOOGLE - Return: ', createdUser);
+
+    const token = await this.generateToken(createdUser);
+    return this.update(searchUser.id, {
+      token: token,
+    });
   };
 
   authFacebook = async (user) => {
@@ -658,9 +661,6 @@ class UserService {
       facebook_user_id: user.facebook_user_id,
     };
 
-    const token = await this.generateToken(createUserDto);
-    createUserDto.token = token;
-
     const createdUser = await prisma.users.create({
       data: createUserDto,
       select: {
@@ -698,7 +698,10 @@ class UserService {
       throw new Error('Failed to create user social!');
     }
 
-    return createdUser;
+    const token = await this.generateToken(createdUser);
+    return this.update(searchUser.id, {
+      token: token,
+    });
   };
 }
 
