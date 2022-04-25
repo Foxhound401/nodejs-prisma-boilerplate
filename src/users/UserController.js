@@ -264,7 +264,7 @@ class UserController {
 
   resendOTP = async (req, res) => {
     try {
-      const { email_phone } = req.body;
+      const { email_phone } = req.query;
 
       if (!email_phone)
         return res
