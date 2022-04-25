@@ -613,7 +613,7 @@ class UserService {
     console.log('AUTH GOOGLE - Return: ', createdUser);
 
     const token = await this.generateToken(createdUser);
-    return this.update(searchUser.id, {
+    return this.update(createdUser.id, {
       token: token,
     });
   };
@@ -699,7 +699,7 @@ class UserService {
     }
 
     const token = await this.generateToken(createdUser);
-    return this.update(searchUser.id, {
+    return this.update(createdUser.id, {
       token: token,
     });
   };

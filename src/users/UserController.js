@@ -194,6 +194,13 @@ class UserController {
   getUserInfo = async (req, res) => {
     try {
       const { id } = req.jwt_payload;
+      if (!id) {
+        return res.status(404).send({
+          success: false,
+          message: 'User not found!',
+          error: 'Not Found',
+        });
+      }
       const user = await this.userService.findFirst({ id });
 
       if (!user) {
