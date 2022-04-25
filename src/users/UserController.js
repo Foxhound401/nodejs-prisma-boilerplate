@@ -280,7 +280,7 @@ class UserController {
       console.error(error);
       return res.status(error.httpStatus ? error.httpStatus : 500).send({
         success: false,
-        message: 'Failed to resend OTP',
+        message: 'Max send attempt reached, please try again later',
       });
     }
   };

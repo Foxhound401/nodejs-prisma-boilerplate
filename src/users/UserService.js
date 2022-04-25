@@ -388,13 +388,15 @@ class UserService {
       },
     });
 
-    if (!user) throw new Error('User not Found!');
-
-    if (emailOrPhone.phone_number) {
-      twilioService.sendOtp(user.phone_number);
-    } else {
-      this.sendOTPEmail(user.email);
+    if (!user) {
+      throw new UserError(
+        HttpStatus.BAD_REQUEST,
+        ErrorCode.USER_NON_EXISTED,
+        'User Not Existed!'
+      );
     }
+
+    await this.sendOTP(emailOrPhone);
 
     return;
   };
