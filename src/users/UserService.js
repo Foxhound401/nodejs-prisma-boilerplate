@@ -324,7 +324,7 @@ class UserService {
     return this.sendOTPEmail(emailPhone);
   };
 
-  resetOTP = async (emailPhone) => {
+  resendOTP = async (emailPhone) => {
     const byPhone = emailPhone.phone_number
       ? {
           phone_number: emailPhone.phone_number,
@@ -332,7 +332,7 @@ class UserService {
       : {
           email: emailPhone.email,
         };
-    const user = this.findFirst({
+    const user = await this.findFirst({
       ...byPhone,
     });
 
@@ -345,6 +345,8 @@ class UserService {
         'User Not Found, Invalid credentials to resend OTP'
       );
     }
+
+    return this.sendOTP(emailPhone);
   };
 
   sendOTPEmail = async (email) => {

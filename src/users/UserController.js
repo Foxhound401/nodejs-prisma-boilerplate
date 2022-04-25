@@ -275,8 +275,9 @@ class UserController {
 
       return res
         .status(201)
-        .json({ data: { message: 'Successfully resend OTP!' } });
+        .send({ data: { message: 'Successfully resend OTP!' } });
     } catch (error) {
+      console.error(error);
       return res.status(error.httpStatus ? error.httpStatus : 500).send({
         success: false,
         message: 'Failed to resend OTP',
