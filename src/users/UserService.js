@@ -327,10 +327,10 @@ class UserService {
   resendOTP = async (emailPhone) => {
     const byPhone = this.utilsService.isEmailRegex(emailPhone)
       ? {
-          email: user.email_phone,
+          email: emailPhone,
         }
       : {
-          phone_number: user.email_phone,
+          phone_number: emailPhone,
         };
     const user = await this.findFirst({
       ...byPhone,
