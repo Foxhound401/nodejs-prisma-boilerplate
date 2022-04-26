@@ -288,27 +288,13 @@ class UserController {
   sendResetPasswordOTP = async (req, res) => {
     try {
       const { email_phone } = req.body;
-      console.log(email_phone);
 
       if (!email_phone)
         return res
           .status(422)
           .json({ error: 'Wrong format or empty for email' });
 
-      if (!this.utilsService.isEmailRegex(email_phone)) {
-        const phone_number = email_phone;
-
-        await this.userService.sendOTPToVerifyResetPasswordRequest({
-          phone_number,
-        });
-
-        return res.status(201).json({
-          data: { message: 'OTP send successfully!!', otpSent: true },
-        });
-      }
-
-      const email = email_phone;
-      await this.userService.sendOTPToVerifyResetPasswordRequest({ email });
+      await this.userService.sendOTPToVerifyResetPasswordRequest(email_phone);
 
       return res
         .status(201)
