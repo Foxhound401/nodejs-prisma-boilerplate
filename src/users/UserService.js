@@ -376,10 +376,10 @@ class UserService {
   sendOTPToVerifyResetPasswordRequest = async (emailOrPhone) => {
     const byPhone = this.utilsService.isEmailRegex(emailOrPhone)
       ? {
-          email: user.email_phone,
+          email: emailOrPhone,
         }
       : {
-          phone_number: user.email_phone,
+          phone_number: emailOrPhone,
         };
 
     const user = await prisma.users.findFirst({
@@ -404,11 +404,12 @@ class UserService {
   resendOTPForResetPasswordRequest = async (emailOrPhone) => {
     const byPhone = this.utilsService.isEmailRegex(emailOrPhone)
       ? {
-          email: user.email_phone,
+          email: emailOrPhone,
         }
       : {
-          phone_number: user.email_phone,
+          phone_number: emailOrPhone,
         };
+
     const user = this.findFirst({
       ...byPhone,
     });
@@ -420,14 +421,14 @@ class UserService {
     return;
   };
 
-  resetPassword = async (email_phone, new_hashed_password) => {
-    const isEmail = this.utilsService.isEmailRegex(email_phone);
+  resetPassword = async (emailPhone, new_hashed_password) => {
+    const isEmail = this.utilsService.isEmailRegex(emailPhone);
     const query = isEmail
       ? {
-          email: email_phone,
+          email: emailPhone,
         }
       : {
-          phone_number: email_phone,
+          phone_number: emailPhone,
         };
 
     const user = await prisma.users.findFirst({
@@ -448,14 +449,14 @@ class UserService {
     });
   };
 
-  verifyResetPasswordOTP = async (email_phone, otp) => {
-    const isEmail = this.utilsService.isEmailRegex(email_phone);
+  verifyResetPasswordOTP = async (emailPhone, otp) => {
+    const isEmail = this.utilsService.isEmailRegex(emailPhone);
     const query = isEmail
       ? {
-          email: email_phone,
+          email: emailPhone,
         }
       : {
-          phone_number: email_phone,
+          phone_number: emailPhone,
         };
 
     const user = await prisma.users.findFirst({
@@ -466,7 +467,7 @@ class UserService {
     if (!user) throw new Error('User not Found');
 
     if (!isEmail) {
-      const verifiedOTP = await twilioService.verifyOtp(email_phone, otp);
+      const verifiedOTP = await twilioService.verifyOtp(emailPhone, otp);
       if (verifiedOTP.status !== 'approved' || !verifiedOTP.valid)
         throw new Error('OTP invalid, please try again');
 
