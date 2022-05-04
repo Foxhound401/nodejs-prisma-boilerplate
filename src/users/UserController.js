@@ -2,6 +2,14 @@ const UserService = require('./UserService');
 const UtilsService = require('../utils/UtilsService');
 const FileService = require('../file/FileService');
 
+function CategoryError(httpStatus, errorCode, message) {
+  this.success = false;
+  this.httpStatus = httpStatus;
+  this.errorCode = errorCode;
+  this.errorKey = getKeyByValue(ErrorCode, errorCode);
+  this.message = message;
+}
+
 class UserController {
   constructor() {
     this.userService = new UserService();
@@ -16,6 +24,7 @@ class UserController {
       if (!email_phone || !password)
         return res.status(422).json({ error: 'Invalid username or password' });
 
+      console.log(email_phone, password);
       const user = await this.userService.signin(email_phone, password);
 
       return res.status(201).json({ data: user });
@@ -515,6 +524,27 @@ class UserController {
   search = async (req, res) => {
     try {
       const { id } = req.jwt_payload;
+      const { search_input } = req.params;
+      const parsed_search_input = search_input.toLowerCase();
+      const searchResp = await this.userService.search(id, parsed_search_input);
+
+      return res.status(201).send({
+        success: true,
+        message: 'Success',
+        data: searchResp,
+      });
+    } catch (error) {
+      console.error(error);
+      return res.send({
+        success: false,
+        message: 'Not available, Please Try again later',
+      });
+    }
+  };
+
+  displayFacebookDeletion = async (req, res) => {
+    try {
+      const { id } = req.body;
       const { search_input } = req.params;
       const parsed_search_input = search_input.toLowerCase();
       const searchResp = await this.userService.search(id, parsed_search_input);

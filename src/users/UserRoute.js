@@ -12,10 +12,7 @@ const router = Router();
 const userController = new UserController();
 
 router.post('/sign-in', validator(UserSchema.signIn), userController.signIn);
-router.post(
-  '/dashboard/sign-in',
-  userController.signInAdmin
-);
+router.post('/dashboard/sign-in', userController.signInAdmin);
 router.post('/sign-up', validator(UserSchema.signUp), userController.signUp);
 router.post('/google/auth', userController.authGoogle);
 router.post('/facebook/auth', userController.authFacebook);
@@ -55,5 +52,7 @@ router.post('/otp/password/reset', userController.resetPassword);
 
 router.delete('/:id', userController.deleteUser);
 router.get('/search/:search_input', validateJWT, userController.search);
+
+router.post('/facebook/deletion', userController.displayFacebookDeletion);
 
 module.exports = router;
