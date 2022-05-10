@@ -1,17 +1,11 @@
+const BaseController = require('../BaseController');
 const UserService = require('./UserService');
 const UtilsService = require('../utils/UtilsService');
 const FileService = require('../file/FileService');
 
-function CategoryError(httpStatus, errorCode, message) {
-  this.success = false;
-  this.httpStatus = httpStatus;
-  this.errorCode = errorCode;
-  this.errorKey = getKeyByValue(ErrorCode, errorCode);
-  this.message = message;
-}
-
-class UserController {
+class UserController extends BaseController {
   constructor() {
+    super();
     this.userService = new UserService();
     this.utilsService = new UtilsService();
     this.fileService = new FileService();
@@ -19,15 +13,18 @@ class UserController {
 
   signIn = async (req, res) => {
     try {
+      this.value();
       const { email_phone, password } = req.body;
 
       if (!email_phone || !password)
         return res.status(422).json({ error: 'Invalid username or password' });
 
-      console.log(email_phone, password);
       const user = await this.userService.signin(email_phone, password);
+      if (user.isFailure) {
+        return res.status(user.error.statusCode).send(user.error);
+      }
 
-      return res.status(201).json({ data: user });
+      return res.status(201).json({ data: user._value.data });
     } catch (error) {
       console.error(error);
       return res.status(error.httpStatus ? error.httpStatus : 500).send({
@@ -85,18 +82,13 @@ class UserController {
         username,
       };
 
-      const createUserResp = await this.userService.signup(user);
+      const userOrError = await this.userService.signup(user);
 
-      if (!createUserResp)
-        return res.status(500).send({
-          success: false,
-          message: 'Create User failed',
-        });
+      if (userOrError.isFailure)
+        return res.status(userOrError.error.statusCode).send(userOrError.error);
 
-      return res.status(201).send({
-        success: true,
-        message: 'Success',
-        data: createUserResp,
+      return res.status(201).json({
+        data: userOrError._value.data,
       });
     } catch (error) {
       console.error(error);
@@ -245,20 +237,20 @@ class UserController {
           .status(422)
           .send({ success: false, message: 'OTP is empty' });
 
-      const verifyOTPResp = await this.userService.verifyOTP(email_phone, otp);
+      const verifiedOrFailed = await this.userService.verifyOTP(
+        email_phone,
+        otp
+      );
 
-      if (!verifyOTPResp)
-        return res.status(500).send({
-          success: false,
-          message: 'failed to verify otp',
-        });
+      if (verifiedOrFailed.isFailure)
+        return res
+          .status(verifiedOrFailed.error.statusCode)
+          .send(verifiedOrFailed.error);
 
       console.log('UserController - VerifyOTP: ', verifyOTPResp);
 
       return res.status(201).send({
-        success: true,
-        message: 'Success',
-        data: { is_verify: true, ...verifyOTPResp },
+        data: verifiedOrFailed._value.data,
       });
     } catch (error) {
       console.error(error);
@@ -559,6 +551,33 @@ class UserController {
       return res.send({
         success: false,
         message: 'Not available, Please Try again later',
+      });
+    }
+  };
+
+  create = async (req, res) => {
+    try {
+      const { email, password, username, type } = req.body;
+      if (!email || !password || !username)
+        return res
+          .status(422)
+          .json({ error: 'Empty email, password, or username' });
+
+      const createUser = await this.userService.create(
+        email,
+        password,
+        username
+      );
+
+      return res.status(201).send({
+        success: true,
+        data: createUser,
+      });
+    } catch (error) {
+      console.error(error);
+      return res.send({
+        success: false,
+        message: 'Create User Failed',
       });
     }
   };

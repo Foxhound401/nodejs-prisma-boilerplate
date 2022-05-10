@@ -100,7 +100,7 @@ const sendOTP = async (email, otp) => {
     html: `<p>OTP: ${otp}</p>`,
   };
 
-  await mg.messages.create(DOMAIN, data).catch((error) => {
+  mg.messages.create(DOMAIN, data).catch((error) => {
     throw error;
   });
 };

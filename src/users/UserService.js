@@ -5,6 +5,7 @@ const twilioService = require('../otp/OTPService');
 const mailService = require('../email/EmailService');
 const socialService = require('../social/SocialService');
 const { ErrorCode, HttpStatus } = require('../utils/ErrorCode');
+const Result = require('../utils/Result');
 
 function getKeyByValue(object, value) {
   return Object.keys(object).find((key) => object[key] === value);
@@ -64,9 +65,15 @@ class UserService {
     });
   };
 
+  //TODO: Remove this code, since it not use
   sendForgetPasswordResetCode = async (email) => {
     const user = await this.firstRow({ email: email });
-    if (!user) return { error: 'Email or username not found!' };
+    if (!user)
+      return Result.fail({
+        statusCode: HttpStatus.OK,
+        errorCode: ErrorCode.USER_NON_EXISTED,
+        message: 'USER_NON_EXISTED',
+      });
 
     const reset_code = Math.floor(100000 + Math.random() * 900000);
     user.reset_token = reset_code;
@@ -91,23 +98,22 @@ class UserService {
         };
 
     const user = await prisma.users.findFirst({ where: { ...byPhone } });
-    if (!user) {
-      throw new UserError(
-        HttpStatus.NOT_FOUND,
-        ErrorCode.USER_NON_EXISTED,
-        "Can't find user for sending otp"
-      );
-    }
+    if (!user)
+      return Result.fail({
+        statusCode: HttpStatus.OK,
+        errorCode: ErrorCode.USER_NON_EXISTED,
+        message: 'USER_NON_EXISTED',
+      });
 
     if (user.phone_number) {
       const verifiedOTP = await twilioService.verifyOtp(user.phone_number, otp);
 
       if (verifiedOTP.status !== 'approved' || !verifiedOTP.valid) {
-        throw new UserError(
-          HttpStatus.BAD_REQUEST,
-          ErrorCode.OTP_INVALID,
-          'OTP verification failed, Invalid OTP'
-        );
+        return Result.fail({
+          statusCode: HttpStatus.BAD_REQUEST,
+          errorCode: ErrorCode.OTP_INVALID,
+          message: 'OTP_INVALID',
+        });
       }
 
       const token = await this.generateToken(user);
@@ -119,18 +125,25 @@ class UserService {
     }
 
     if (user.otp_code !== otp) {
-      throw new UserError(
-        HttpStatus.BAD_REQUEST,
-        ErrorCode.OTP_INVALID,
-        'OTP verification failed, Invalid OTP'
-      );
+      return Result.fail({
+        statusCode: HttpStatus.BAD_REQUEST,
+        errorCode: ErrorCode.OTP_INVALID,
+        message: 'OTP_INVALID',
+      });
     }
 
     const token = await this.generateToken(user);
-    return this.update(user.id, {
+    const updatedUser = this.update(user.id, {
       otp_code: otp,
       is_verify: true,
       token: token,
+    });
+
+    return Result.ok({
+      statusCode: HttpStatus.OK,
+      data: {
+        ...updatedUser,
+      },
     });
   };
 
@@ -174,30 +187,36 @@ class UserService {
     });
 
     if (!existed)
-      throw new UserError(
-        HttpStatus.BAD_REQUEST,
-        ErrorCode.USER_NON_EXISTED,
-        'User Not Existed!'
-      );
+      return Result.fail({
+        statusCode: HttpStatus.OK,
+        errorCode: ErrorCode.USER_NON_EXISTED,
+        message: 'USER_NON_EXISTED',
+      });
 
     if (!this.validPassword(password, existed.password))
-      throw new UserError(
-        HttpStatus.BAD_REQUEST,
-        ErrorCode.PASSWORD_INVALID,
-        'Password Invalid!'
-      );
+      return Result.fail({
+        statusCode: HttpStatus.BAD_REQUEST,
+        errorCode: ErrorCode.PASSWORD_INVALID,
+        message: 'PASSWORD_INVALID',
+      });
 
     if (!existed.is_verify) {
       await this.sendOTP(email_phone);
-      throw new UserError(
-        HttpStatus.UNAUTHORIZED,
-        ErrorCode.USER_NON_VERIFIED,
-        'User Not Yet Verified!'
-      );
+      return Result.fail({
+        statusCode: HttpStatus.UNAUTHORIZED,
+        errorCode: ErrorCode.USER_NON_VERIFIED,
+        message: 'USER_NON_VERIFIED',
+      });
     }
 
     const token = await this.generateToken(existed);
-    return this.update(existed.id, { token });
+    const updatedUser = await this.update(existed.id, { token });
+    return Result.ok({
+      statusCode: HttpStatus.OK,
+      data: {
+        ...updatedUser,
+      },
+    });
   };
 
   signinAdmin = async (email, password) => {
@@ -208,21 +227,25 @@ class UserService {
     });
 
     if (!existed)
-      throw new UserError(
-        HttpStatus.BAD_REQUEST,
-        ErrorCode.USER_NON_EXISTED,
-        'User Not Existed!'
-      );
+      return Result.fail({
+        statusCode: HttpStatus.OK,
+        errorCode: ErrorCode.USER_NON_EXISTED,
+        message: 'USER_NON_EXISTED',
+      });
 
     if (!this.validPassword(password, existed.password))
-      throw new UserError(
-        HttpStatus.BAD_REQUEST,
-        ErrorCode.PASSWORD_INVALID,
-        'Password Invalid!'
-      );
+      return Result.fail({
+        statusCode: HttpStatus.BAD_REQUEST,
+        errorCode: ErrorCode.PASSWORD_INVALID,
+        message: 'PASSWORD_INVALID',
+      });
 
     const token = await this.generateToken(existed);
-    return this.update(existed.id, { token });
+    const updatedUser = this.update(existed.id, { token });
+    return Result.ok({
+      statusCode: HttpStatus.OK,
+      data: { ...updatedUser },
+    });
   };
 
   signup = async (user) => {
@@ -241,11 +264,11 @@ class UserService {
     });
 
     if (existed)
-      throw new UserError(
-        HttpStatus.BAD_REQUEST,
-        ErrorCode.USER_EXISTED,
-        'User Existed!'
-      );
+      return Result.fail({
+        statusCode: HttpStatus.BAD_REQUEST,
+        errorCode: ErrorCode.USER_EXISTED,
+        message: 'USER_EXISTED',
+      });
 
     const createdUser = await prisma.users.create({
       data: {
@@ -256,30 +279,20 @@ class UserService {
         is_verify: false,
         is_admin: false,
       },
-      select: {
-        id: true,
-        username: true,
-        email: true,
-        phone_number: true,
-        avatar: true,
-        cover: true,
-        account_type: true,
-        first_name: true,
-        last_name: true,
-        created_at: true,
-        updated_at: true,
-        birthday: true,
-        is_admin: true,
-        profile_src: true,
-        is_verify: true,
-      },
     });
 
-    if (!createdUser) throw new Error('Failed to create user!');
+    if (!createdUser) {
+      return Result.fail({
+        statusCode: HttpStatus.BAD_REQUEST,
+        // errorCode: ErrorCode.OTP_INVALID,
+        message: 'CREATE_USER_FAILED',
+      });
+    }
 
     // TODO: implement Observer to relay user
     // This should have observer pattern so that multiple services can
     // subscribe to it and sync the user
+
     const userSocial = await socialService.createUser(createdUser);
 
     if (!userSocial) {
@@ -287,19 +300,24 @@ class UserService {
         where: { id: createdUser.id },
       });
 
-      const social = await socialService.deleteUser(createdUser.id);
-
-      console.error('UserService - failed to create social user', social);
-      throw new Error('Failed to create user social!');
+      return Result.fail({
+        statusCode: HttpStatus.BAD_REQUEST,
+        // errorCode: ErrorCode.OTP_INVALID,
+        message: 'CREATE_USER_FAILED',
+      });
     }
 
     await this.sendOTP(user.email_phone);
 
-    return createdUser;
+    return Result.ok({
+      statusCode: HttpStatus.OK,
+      data: {
+        ...createdUser,
+      },
+    });
   };
 
   getCurrentUser = async (userId) => {
-    if (!userId) throw new Error('user id not found');
     return prisma.users.findFirst({
       where: { id: userId },
       select: {
@@ -686,6 +704,43 @@ class UserService {
         is_verify: true,
         token: true,
       },
+    });
+
+    // TODO: implement Observer to relay user
+    // This should have observer pattern so that multiple services can
+    // subscribe to it and sync the user
+    const userSocial = await socialService.createUser(createdUser);
+
+    if (!userSocial) {
+      await prisma.users.delete({
+        where: { id: createdUser.id },
+      });
+
+      await socialService.deleteUser(createdUser.id);
+
+      throw new Error('Failed to create user social!');
+    }
+
+    const token = await this.generateToken(createdUser);
+    return this.update(createdUser.id, {
+      token: token,
+    });
+  };
+
+  create = async (email, password, username, type) => {
+    const searchUser = await this.findFirst(email);
+
+    if (searchUser) throw new Error('User already existed');
+
+    const createUserDto = {
+      email: email,
+      password: password,
+      username: username,
+      account_type: type,
+    };
+
+    const createdUser = await prisma.users.create({
+      data: createUserDto,
     });
 
     // TODO: implement Observer to relay user
