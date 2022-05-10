@@ -45,7 +45,7 @@ class UserController extends BaseController {
 
       const user = await this.userService.signinAdmin(email, password);
 
-      return res.status(201).json({ data: user });
+      return res.status(201).json({ data: user._value.data });
     } catch (error) {
       console.error(error);
       return res.status(error.httpStatus ? error.httpStatus : 500).send({

@@ -241,7 +241,7 @@ class UserService {
       });
 
     const token = await this.generateToken(existed);
-    const updatedUser = this.update(existed.id, { token });
+    const updatedUser = await this.update(existed.id, { token });
     return Result.ok({
       statusCode: HttpStatus.OK,
       data: { ...updatedUser },
