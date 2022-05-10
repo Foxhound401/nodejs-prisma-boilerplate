@@ -8,7 +8,7 @@ const createUser = async (user) => {
       url: '/users',
       data: {
         name: user.username,
-        type: user.type ? user.type : 'default',
+        type: user.account_type ? user.account_type : 'default',
         system_user_id: user.id,
       },
     });
