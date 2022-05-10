@@ -3,12 +3,12 @@ const Api = require('../utils/axios');
 
 const createUser = async (user) => {
   try {
-    console.log(user)
+    console.log('SOCIAL SERVICE:', user);
     const res = await Api({
       url: '/users',
       data: {
         name: user.username,
-        type: 'default',
+        type: user.type ? user.type : 'default',
         system_user_id: user.id,
       },
     });

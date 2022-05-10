@@ -730,7 +730,12 @@ class UserService {
   create = async (email, password, username, type) => {
     const searchUser = await this.findFirst(email);
 
-    if (searchUser) throw new Error('User already existed');
+    if (searchUser)
+      return Result.fail({
+        statusCode: HttpStatus.OK,
+        errorCode: ErrorCode.USER_EXISTED,
+        message: 'USER_EXISTED',
+      });
 
     const createUserDto = {
       email: email,
@@ -755,12 +760,65 @@ class UserService {
 
       await socialService.deleteUser(createdUser.id);
 
-      throw new Error('Failed to create user social!');
+      return Result.fail({
+        statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+        // errorCode: ErrorCode.USER_EXISTED,
+        message: 'CREATE_USER_FAILED',
+      });
     }
 
     const token = await this.generateToken(createdUser);
-    return this.update(createdUser.id, {
+    const updatedUser = this.update(createdUser.id, {
       token: token,
+    });
+    return Result.ok({
+      statusCode: HttpStatus.OK,
+      data: { ...updatedUser },
+    });
+  };
+
+  createOA = async (username) => {
+    const searchUser = await this.findFirst({ username });
+
+    console.log(searchUser);
+    if (searchUser)
+      return Result.fail({
+        statusCode: HttpStatus.OK,
+        errorCode: ErrorCode.USER_EXISTED,
+        message: 'OA_EXISTED',
+      });
+
+    const createUserDto = {
+      username: username,
+      account_type: 'oa',
+    };
+
+    const createdUser = await prisma.users.create({
+      data: createUserDto,
+    });
+
+    // TODO: implement Observer to relay user
+    // This should have observer pattern so that multiple services can
+    // subscribe to it and sync the user
+    const userSocial = await socialService.createUser(createdUser);
+
+    if (!userSocial) {
+      await prisma.users.delete({
+        where: { id: createdUser.id },
+      });
+
+      await socialService.deleteUser(createdUser.id);
+
+      return Result.fail({
+        statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+        // errorCode: ErrorCode.USER_EXISTED,
+        message: 'CREATE_USER_FAILED',
+      });
+    }
+
+    return Result.ok({
+      statusCode: HttpStatus.OK,
+      data: { ...createdUser },
     });
   };
 }

@@ -566,13 +566,40 @@ class UserController extends BaseController {
       const createUser = await this.userService.create(
         email,
         password,
-        username
+        username,
+        type
       );
 
-      return res.status(201).send({
-        success: true,
-        data: createUser,
+      if (createUser.isFailure) {
+        return res.status(createUser.error.statusCode).send(createUser.error);
+      }
+
+      return res.status(201).json({ data: createUser._value.data });
+    } catch (error) {
+      console.error(error);
+      return res.send({
+        success: false,
+        message: 'Create User Failed',
       });
+    }
+  };
+
+  createOA = async (req, res) => {
+    try {
+      const { username } = req.body;
+      if (!username)
+        return res.status(422).send({
+          error: 'Empty email, password, or username',
+          message: 'USERNAME_EMPTY',
+        });
+
+      const userOrError = await this.userService.createOA(username);
+
+      if (userOrError.isFailure) {
+        return res.status(userOrError.error.statusCode).send(userOrError.error);
+      }
+
+      return res.status(201).json({ data: userOrError._value.data });
     } catch (error) {
       console.error(error);
       return res.send({

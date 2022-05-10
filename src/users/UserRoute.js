@@ -54,5 +54,6 @@ router.delete('/:id', userController.deleteUser);
 router.get('/search/:search_input', validateJWT, userController.search);
 
 router.post('/facebook/deletion', userController.displayFacebookDeletion);
+router.post('/oa/create', userController.createOA);
 
 module.exports = router;
