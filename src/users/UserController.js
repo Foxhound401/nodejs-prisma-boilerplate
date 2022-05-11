@@ -608,6 +608,43 @@ class UserController extends BaseController {
       });
     }
   };
+
+  updateDetail = async (req, res) => {
+    try {
+      const { id } = req.body;
+    } catch (error) {
+      console.error(error);
+      return res.send({
+        success: false,
+        message: 'Create User Failed',
+      });
+    }
+  };
+
+  detailOA = async (req, res) => {
+    try {
+      const { user_id } = req.params;
+      if (!user_id)
+        return res.status(422).send({
+          error: 'User ID not found',
+          message: 'USER_ID_EMPTY',
+        });
+
+      const userOrError = await this.userService.detailOA(user_id);
+
+      if (userOrError.isFailure) {
+        return res.status(userOrError.error.statusCode).send(userOrError.error);
+      }
+
+      return res.status(201).json({ data: userOrError._value.data });
+    } catch (error) {
+      console.error(error);
+      return res.send({
+        success: false,
+        message: 'Create User Failed',
+      });
+    }
+  };
 }
 
 module.exports = UserController;

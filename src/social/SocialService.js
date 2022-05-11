@@ -74,9 +74,23 @@ const updateUserCover = async (system_user_id, cover) => {
   }
 };
 
+const getUserDetail = async (system_user_id) => {
+  try {
+    const res = await Api({
+      url: `/users/oa/${system_user_id}`,
+      method: 'GET',
+    });
+
+    return res;
+  } catch (error) {
+    throw error;
+  }
+};
+
 module.exports = {
   createUser,
   deleteUser,
   updateUserAvatar,
   updateUserCover,
+  getUserDetail,
 };

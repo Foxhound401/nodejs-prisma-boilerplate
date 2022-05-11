@@ -1,8 +1,6 @@
 const { Router } = require('express');
 const { validateJWT } = require('../middlewares/Middleware');
 const UserController = require('./UserController');
-const validator = require('../middlewares/Validator');
-const UserSchema = require('./UserValidator');
 const multer = require('multer');
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
@@ -55,5 +53,6 @@ router.get('/search/:search_input', validateJWT, userController.search);
 
 router.post('/facebook/deletion', userController.displayFacebookDeletion);
 router.post('/oa', userController.createOA);
+router.get('/oa/:user_id', userController.detailOA);
 
 module.exports = router;

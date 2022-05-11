@@ -821,6 +821,38 @@ class UserService {
       data: { ...createdUser },
     });
   };
+
+  detailOA = async (user_id) => {
+    const searchUser = await this.findFirst({ id: user_id });
+
+    if (!searchUser)
+      return Result.fail({
+        statusCode: HttpStatus.OK,
+        errorCode: ErrorCode.USER_NON_EXISTED,
+        message: 'OA_NON_EXISTED',
+      });
+
+    // TODO: implement Observer to relay user
+    // This should have observer pattern so that multiple services can
+    // subscribe to it and sync the user
+    const userSocial = await socialService.getUserDetail(user_id);
+
+    console.log(userSocial);
+
+    if (!userSocial) {
+      console.error('Social user not found');
+      return Result.fail({
+        statusCode: HttpStatus.NOT_FOUND,
+        errorCode: ErrorCode.USER_NON_EXISTED,
+        message: 'SOCIAL_USER_NON_EXISTED',
+      });
+    }
+
+    return Result.ok({
+      statusCode: HttpStatus.OK,
+      data: { ...searchUser, oa: { ...userSocial } },
+    });
+  };
 }
 
 module.exports = UserService;
