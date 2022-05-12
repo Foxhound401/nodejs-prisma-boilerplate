@@ -876,7 +876,7 @@ class UserService {
       where: { id },
     });
 
-    const deleteUserSocial = await socialService.updateUserDetail(id);
+    const deleteUserSocial = await socialService.deleteUser(id);
 
     return Result.ok({
       statusCode: HttpStatus.OK,
