@@ -55,5 +55,6 @@ router.post('/facebook/deletion', userController.displayFacebookDeletion);
 router.post('/oa', userController.createOA);
 router.get('/oa/:user_id', userController.detailOA);
 router.put('/oa/:user_id', userController.updateDetail);
+router.delete('/oa/:user_id', userController.updateDetail);
 
 module.exports = router;

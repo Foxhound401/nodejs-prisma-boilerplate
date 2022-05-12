@@ -870,6 +870,19 @@ class UserService {
       data: { ...update, oa: { ...updateUserSocial } },
     });
   };
+
+  deleteOA = async (id) => {
+    const deleteUser = await prisma.users.delete({
+      where: { id },
+    });
+
+    const deleteUserSocial = await socialService.updateUserDetail(id);
+
+    return Result.ok({
+      statusCode: HttpStatus.OK,
+      data: { ...deleteUser, oa: { ...deleteUserSocial } },
+    });
+  };
 }
 
 module.exports = UserService;

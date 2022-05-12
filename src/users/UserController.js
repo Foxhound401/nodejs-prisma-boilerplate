@@ -429,6 +429,7 @@ class UserController extends BaseController {
         return res.status(500).send({
           message: 'failed to upload avatar',
         });
+
       return res.send({
         success: true,
         message: 'Success',
@@ -639,6 +640,31 @@ class UserController extends BaseController {
         });
 
       const userOrError = await this.userService.detailOA(user_id);
+
+      if (userOrError.isFailure) {
+        return res.status(userOrError.error.statusCode).send(userOrError.error);
+      }
+
+      return res.status(201).json({ data: userOrError._value.data });
+    } catch (error) {
+      console.error(error);
+      return res.send({
+        success: false,
+        message: 'Create User Failed',
+      });
+    }
+  };
+
+  deleteOA = async (req, res) => {
+    try {
+      const { user_id } = req.params;
+      if (!user_id)
+        return res.status(422).send({
+          error: 'User ID not found',
+          message: 'USER_ID_EMPTY',
+        });
+
+      const userOrError = await this.userService.deleteOA(user_id);
 
       if (userOrError.isFailure) {
         return res.status(userOrError.error.statusCode).send(userOrError.error);

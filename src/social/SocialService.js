@@ -89,13 +89,25 @@ const getUserDetail = async (system_user_id) => {
 
 const updateUserDetail = async (system_user_id, user) => {
   try {
-    console.log('WHY NO USER: ', user);
     const res = await Api({
       url: `/users/oa/${system_user_id}`,
       method: 'PUT',
       data: {
         user,
       },
+    });
+
+    return res;
+  } catch (error) {
+    throw error;
+  }
+};
+
+const deleteUserDetail = async (system_user_id) => {
+  try {
+    const res = await Api({
+      url: `/users/oa/${system_user_id}`,
+      method: 'DELETE',
     });
 
     return res;
