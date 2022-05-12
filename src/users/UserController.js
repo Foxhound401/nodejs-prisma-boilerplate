@@ -611,7 +611,15 @@ class UserController extends BaseController {
 
   updateDetail = async (req, res) => {
     try {
-      const { id } = req.body;
+      const { user_id } = req.params;
+      const { user } = req.body;
+
+      console.log('USER_CONTROLLER - UpdateDetail - USER_ID: ', user_id);
+      console.log('USER_DATA: ', user);
+
+      const userOrError = await this.userService.updateOA(user_id, user);
+
+      return res.status(201).json({ data: userOrError._value.data });
     } catch (error) {
       console.error(error);
       return res.send({

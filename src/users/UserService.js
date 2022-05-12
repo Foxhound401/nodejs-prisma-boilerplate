@@ -853,6 +853,23 @@ class UserService {
       data: { ...searchUser, oa: { ...userSocial } },
     });
   };
+
+  updateOA = async (id, user) => {
+    const update = await prisma.users.update({
+      where: { id },
+      data: {
+        username: user.name,
+      },
+    });
+
+    console.log(user);
+    const updateUserSocial = await socialService.updateUserDetail(id, user);
+
+    return Result.ok({
+      statusCode: HttpStatus.OK,
+      data: { ...update, oa: { ...updateUserSocial } },
+    });
+  };
 }
 
 module.exports = UserService;
