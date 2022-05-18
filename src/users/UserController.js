@@ -470,6 +470,7 @@ class UserController extends BaseController {
         data: fileResp,
       });
     } catch (error) {
+      console.error(error)
       return res.status(500).send({
         success: false,
         message: 'Server Error',
