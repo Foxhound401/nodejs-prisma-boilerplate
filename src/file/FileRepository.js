@@ -37,6 +37,7 @@ class FileRepository {
         this.uploadFolder(serviceFolder, BucketFolderEnum.avatar) +
         hashingMd5FileName(file.originalname),
       Body: file.buffer,
+      ContentType: file.mimetype,
       ACL: FILE_PERMISSION,
     };
     return this.s3.upload(params).promise();
