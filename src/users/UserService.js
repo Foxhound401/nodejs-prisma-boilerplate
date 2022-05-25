@@ -89,6 +89,7 @@ class UserService {
   };
 
   verifyOTP = async (emailPhone, otp) => {
+    console.log('EMAIL_PHONE', emailPhone, otp);
     const byPhone = this.utilsService.isEmailRegex(emailPhone)
       ? {
           email: emailPhone,

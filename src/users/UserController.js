@@ -252,7 +252,7 @@ class UserController extends BaseController {
         data: verifiedOrFailed._value.data,
       });
     } catch (error) {
-      console.error(error);
+      console.error('VERIFY_OTP: ', error);
       return res.status(error.httpStatus ? error.httpStatus : 500).send({
         success: error?.success,
         message: error?.message,
