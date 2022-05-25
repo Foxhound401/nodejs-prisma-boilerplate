@@ -193,7 +193,8 @@ class UserService {
         message: 'USER_NON_EXISTED',
       });
 
-    if (!this.validPassword(password, existed.password))
+    const validPassword = await this.validPassword(password, existed.password);
+    if (!validPassword)
       return Result.fail({
         statusCode: HttpStatus.BAD_REQUEST,
         errorCode: ErrorCode.PASSWORD_INVALID,

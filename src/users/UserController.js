@@ -13,7 +13,6 @@ class UserController extends BaseController {
 
   signIn = async (req, res) => {
     try {
-      this.value();
       const { email_phone, password } = req.body;
 
       if (!email_phone || !password)
@@ -470,7 +469,7 @@ class UserController extends BaseController {
         data: fileResp,
       });
     } catch (error) {
-      console.error(error)
+      console.error(error);
       return res.status(500).send({
         success: false,
         message: 'Server Error',
