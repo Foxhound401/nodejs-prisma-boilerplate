@@ -196,7 +196,7 @@ class UserService {
 
     if (!existed)
       return Result.fail({
-        statusCode: HttpStatus.OK,
+        statusCode: HttpStatus.NOT_FOUND,
         errorCode: ErrorCode.USER_NON_EXISTED,
         message: 'USER_NON_EXISTED',
       });
