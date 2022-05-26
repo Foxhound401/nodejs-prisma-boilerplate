@@ -91,10 +91,10 @@ class UserService {
   verifyOTP = async (emailPhone, otp) => {
     const byPhone = this.utilsService.isEmailRegex(emailPhone)
       ? {
-          email: emailPhone,
+          email: emailPhone.toLowerCase(),
         }
       : {
-          phone_number: emailPhone,
+          phone_number: emailPhone.toLowerCase(),
         };
 
     const user = await prisma.users.findFirst({ where: { ...byPhone } });
