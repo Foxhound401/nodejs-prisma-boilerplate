@@ -231,6 +231,7 @@ class UserController extends BaseController {
         return res
           .status(422)
           .send({ success: false, message: 'Email or PhoneNumber is empty' });
+
       if (!otp)
         return res
           .status(422)

@@ -100,7 +100,7 @@ class UserService {
     const user = await prisma.users.findFirst({ where: { ...byPhone } });
     if (!user)
       return Result.fail({
-        statusCode: HttpStatus.OK,
+        statusCode: HttpStatus.NOT_FOUND,
         errorCode: ErrorCode.USER_NON_EXISTED,
         message: 'USER_NON_EXISTED',
       });
@@ -139,7 +139,7 @@ class UserService {
       token: token,
     });
 
-    console.log(updatedUser);
+    console.log('VERIFIED USER: ', updatedUser);
 
     return Result.ok({
       statusCode: HttpStatus.OK,
