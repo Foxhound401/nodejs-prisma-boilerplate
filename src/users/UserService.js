@@ -127,6 +127,9 @@ class UserService {
       });
     }
 
+    console.log('OTP_CODE: ', user.otp_code);
+    console.log('OTP_CODE: ', otp);
+
     if (user.otp_code !== otp) {
       return Result.fail({
         statusCode: HttpStatus.BAD_REQUEST,
