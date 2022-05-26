@@ -133,11 +133,13 @@ class UserService {
     }
 
     const token = await this.generateToken(user);
-    const updatedUser = this.update(user.id, {
+    const updatedUser = await this.update(user.id, {
       otp_code: otp,
       is_verify: true,
       token: token,
     });
+
+    console.log(updatedUser);
 
     return Result.ok({
       statusCode: HttpStatus.OK,

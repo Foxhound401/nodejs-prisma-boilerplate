@@ -249,7 +249,7 @@ class UserController extends BaseController {
       console.log('UserController - VerifyOTP: ', verifiedOrFailed);
 
       return res.status(201).send({
-        data: verifiedOrFailed,
+        data: verifiedOrFailed._value.data,
       });
     } catch (error) {
       console.error('VERIFY_OTP: ', error);
