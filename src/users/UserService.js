@@ -98,6 +98,9 @@ class UserService {
         };
 
     const user = await prisma.users.findFirst({ where: { ...byPhone } });
+
+    console.log('VERIFY_OTP_FIND_USER', user);
+
     if (!user)
       return Result.fail({
         statusCode: HttpStatus.NOT_FOUND,
