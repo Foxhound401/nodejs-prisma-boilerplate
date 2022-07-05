@@ -1,9 +1,10 @@
 const { Router } = require('express');
-const userRoutes = require('./users/UserRoute');
+const testbedRoutes = require('./testbed/TestBedRoute')
 const router = Router();
 
-router.get('/', (req, res) => res.send('hello sso'));
+router.get('/health', (req, res) => res.send('hello sso'));
 
-router.use('/users', userRoutes);
+router.use('/testbed', testbedRoutes)
+
 
 module.exports = router;

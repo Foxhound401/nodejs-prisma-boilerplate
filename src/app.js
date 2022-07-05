@@ -10,6 +10,6 @@ app.use(cors());
 app.use(express.json());
 app.use(morgan('combined', { stream: winston.stream }));
 
-app.use('/sso', router);
+app.use('/', router);
 
 module.exports = app;
